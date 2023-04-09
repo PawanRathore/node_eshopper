@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('./partials/head'); -%>
+
+<body>
+    <%- include('./partials/header'); -%>
+    <%- include('./partials/menu'); -%>
+    
+
+
+    <!-- Page Header Start -->
+    <div class="container-fluid bg-secondary mb-5">
+        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+            <h1 class="font-weight-semi-bold text-uppercase mb-3">Login</h1>
+            <div class="d-inline-flex">
+                <p class="m-0"><a href="">Home</a></p>
+                <p class="m-0 px-2">-</p>
+                <p class="m-0">Login</p>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+
+    <!-- Contact Start -->
+    <div class="container-fluid pt-5">
+        <div class="text-center mb-4">
+            <h2 class="section-title px-5"><span class="px-2">Login</span></h2>
+        </div>
+        <div class="row px-xl-5">
+            <div class="col-4"></div>
+            <div class="col-4">
+                <div class="contact-form">
+                    <div id="success"></div>
+                    <!-- <form name="sentMessage" id="contactForm" novalidate="novalidate"> -->
+                        
+                        <div class="control-group">
+                            <input type="email" value="e1_rathorepawan13@gmail.com" class="form-control" id="email" placeholder="Your Email"
+                                required="required" data-validation-required-message="Please enter your email" />
+                            <p class="help-block text-danger"></p>
+                        </div>
+                        <div class="control-group">
+                            <input type="text" value="789"  class="form-control" id="password" placeholder="password"
+                                required="required" data-validation-required-message="Please enter password" />
+                            <p class="help-block text-danger"></p>
+                        </div>                        
+                        <div style="text-align: center;">
+                            <button class="btn btn-primary py-2 px-4" type="submit" id="sendMessageButton" onclick="login()"> Submit </button>
+                        </div>
+                    <!-- </form> -->
+                </div>
+            </div>
+            <div class="col-4"></div>
+            
+        </div>
+    </div>
+    <!-- Contact End -->
+
+
+    <%- include('./partials/footer'); -%>
+<script>
+    function login(){ 
+        let email = $('#email').val();
+        let password = $('#password').val();
+        console.log(email,password);
+        
+        $.ajax({
+        url: "loginpost?email="+email+"&password="+password,
+        type: "post",  
+        success: function (response) {
+            console.log(response);
+            if(response.status = 1){
+                window.open('/dashboard');    
+            }           
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+        });
+              
+    }
+</script>
+</body>
+
+</html>
