@@ -10,7 +10,7 @@ const { connection } = require('./db/db_connetion');
 const { checkemailExits } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 
-const router = express.Router()
+const router = express.Router()  
 const PORT = 3001;
 
 //app.use(express.bodyParser());
