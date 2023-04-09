@@ -68,7 +68,7 @@ router.get('/detail', (req, res) => {
 router.get('/cart', (req, res) => {
     console.log(`cart router`);
     res.render('cart');
-})
+}) 
 
 router.get('/checkout', (req, res) => {
     console.log(`checkout router`);
