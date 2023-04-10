@@ -6,11 +6,15 @@ var session = require('express-session');
 const nodemailer = require('nodemailer');
 
 var { islogin } = require('./isLoginMiddleware');
+var { isadminlogin } = require('./isadminLoginMiddleware');
+
 const { connection } = require('./db/db_connetion');
 const { checkemailExits } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 
-const router = express.Router()  
+const router = express.Router()
+const adminRouter = express.Router()
+
 const PORT = 3001;
 
 //app.use(express.bodyParser());
@@ -27,6 +31,7 @@ app.use(session({
     cookie: { maxAge: oneDay }
 }))
 
+adminRouter.use(isadminlogin);
 router.use(islogin);
 
 app.get('/', (req, res) => {
@@ -255,6 +260,58 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 })
 
+
+app.get('/admin',(req,res)=>{
+    res.render('adminLogin');
+})
+
+app.post('/adminloginpost', (req, res) => {
+    console.log(`adminloginpost`);
+    let email = req.query.email;
+    let password = req.query.password;
+    console.log(email);
+    console.log(password);
+
+    let query = `select * from admin where email= '${email}' and password= '${password}'`;
+    console.log(query);
+    connection.query(query, (err, result) => {
+        if (err) throw err
+        let lengthResult = result.length;
+        console.log(`lengthResult ${lengthResult}`);
+
+        if (lengthResult > 0) {
+            console.log(`ok`);
+            let name = result[0].name;
+            let id = result[0].id;
+            console.log('admin name : '+name);
+            req.session.isadminlogin = 1;
+            req.session.adminName = name;
+            req.session.adminId = id;
+            console.log(JSON.stringify(result));
+            //res.redirect('/loginTest');   
+            resdata = { 'status': 1, 'msg': 'login successful' };
+            res.json(resdata);
+        } else {
+            //res.redirect('/loginTest');   
+            resdata = { 'status': 0, 'msg': 'invalid Credential' };
+            res.json(resdata);
+        }
+    })
+}) 
+
+adminRouter.get('/admin_dashboard',(req,res)=>{
+    res.render('admin_dashboard');
+})
+
+adminRouter.post('/admin_dashboard',(req,res)=>{
+    res.render('admin_dashboard'); 
+})
+
+adminRouter.get('/add_product',(req, res)=>{
+    res.render('add_product');
+})
+
+app.use(adminRouter);
 app.use(router);
 
 app.listen(PORT, (error) => {

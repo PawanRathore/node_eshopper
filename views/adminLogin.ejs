@@ -12,11 +12,11 @@
     <!-- Page Header Start -->
     <div class="container-fluid bg-secondary mb-5">
         <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
-            <h1 class="font-weight-semi-bold text-uppercase mb-3">Login</h1>
+            <h1 class="font-weight-semi-bold text-uppercase mb-3">Admin Login</h1>
             <div class="d-inline-flex">
                 <p class="m-0"><a href="">Home</a></p>
                 <p class="m-0 px-2">-</p>
-                <p class="m-0">Login</p>
+                <p class="m-0">Admin Login</p>
             </div>
         </div>
     </div>
@@ -26,7 +26,7 @@
     <!-- Contact Start -->
     <div class="container-fluid pt-5">
         <div class="text-center mb-4">
-            <h2 class="section-title px-5"><span class="px-2">Login</span></h2>
+            <h2 class="section-title px-5"><span class="px-2">Admin Login</span></h2>
         </div>
         <div class="row px-xl-5">
             <div class="col-4"></div>
@@ -36,12 +36,12 @@
                     <!-- <form name="sentMessage" id="contactForm" novalidate="novalidate"> -->
                         
                         <div class="control-group">
-                            <input type="email" value="e1_rathorepawan13@gmail.com" class="form-control" id="email" placeholder="Your Email"
+                            <input type="email" value="admin@gmail.com" class="form-control" id="email" placeholder="Your Email"
                                 required="required" data-validation-required-message="Please enter your email" />
                             <p class="help-block text-danger"></p>
                         </div>
                         <div class="control-group">
-                            <input type="text" value="789"  class="form-control" id="password" placeholder="password"
+                            <input type="text" value="admin@123"  class="form-control" id="password" placeholder="password"
                                 required="required" data-validation-required-message="Please enter password" />
                             <p class="help-block text-danger"></p>
                         </div>                        
@@ -66,12 +66,14 @@
         console.log(email,password);
         
         $.ajax({
-        url: "loginpost?email="+email+"&password="+password,
+        url: "adminloginpost?email="+email+"&password="+password,
         type: "post",  
         success: function (response) {
             console.log(response);
             if(response.status == 1){
-                window.open('/dashboard');    
+                window.open('/admin_dashboard');    
+            }else{
+                alert(response.msg);
             }           
         },
         error: function(jqXHR, textStatus, errorThrown) {
