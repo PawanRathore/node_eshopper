@@ -46,15 +46,15 @@ router.use(islogin);
 app.get('/', (req, res) => {
     console.log(`root router`);
 
-    connection.query('SELECT * from products', (err, result) => {
+    connection.query('SELECT * from products where staus=1', (err, result) => {
         if (err) throw err
         console.log('Products Id is : ', result[0].id)
 
         let products = [];
         result.forEach(element => {
             console.log(element.id);
-            let { id = '', name = '', price = '', discount_price = '', description = '', color = '', size = '', category = '' } = element;
-            let obj = { 'id': id, 'name': name, 'price': price, 'discount_price': discount_price, 'description': description, 'color': color, 'size': size, 'category': category }
+            let { id = '', name = '', price = '', discount_price = '', description = '', color = '', size = '', category = '',product_image='' } = element;
+            let obj = { 'id': id, 'name': name, 'price': price, 'discount_price': discount_price, 'description': description, 'color': color, 'size': size, 'category': category,'productImage':product_image}
             products.push(obj);
         });
         console.log(JSON.stringify(products));

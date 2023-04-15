@@ -1,9 +1,9 @@
 const { connection } = require('./db/db_connetion');
 
-const checkemailExits =  async(email,table='users')=>{
+const checkemailExits = async (email, table = 'users') => {
     //let email = req.email;
     console.log(`checkemailExits email :  ${email}`);
-    
+
     // //let dbData = await connection.query(checkEamilQuery);
     //     await connection.query(checkEamilQuery, (err, result) => {
     //         console.log( 'err '+ JSON.stringify(err));      
@@ -18,15 +18,39 @@ const checkemailExits =  async(email,table='users')=>{
     //return dbData; 
 
     const response = await new Promise((resolve, reject) => {
-        let checkEamilQuery = `select * from ${table} where email='${email}'`; 
-        console.log('checkEmailQuery : '+checkEamilQuery);
+        let checkEamilQuery = `select * from ${table} where email='${email}'`;
+        console.log('checkEmailQuery : ' + checkEamilQuery);
         connection.query(checkEamilQuery, (err, results) => {
             if (err) reject(new Error(`${err.toString()} , Err No : ${err.errno}`));
-            resolve(results); 
+            resolve(results);
         });
     });
     return response;
 }
 
-module.exports = {checkemailExits}; 
+const getProducts = async (type = 'all') => {
+    let productsData = await new Promise((resolve, reject) => {
+        let sqlQuery = 'SELECT * from products';
+        if (type == 'active') {
+            sqlQuery = 'SELECT * from products where staus=1';
+        }
+        console.log(sqlQuery);
+        connection.query(sqlQuery, (err, result) => {
+            if (err) reject(new Error(`${err.toString()} , Err No : ${err.errno}`));            
+            let products = [];            
+            if (result.length > 0) {
+                result.forEach(element => {
+                    //console.log(element.id);
+                    let { id = '', name = '', price = '', discount_price = '', description = '', color = '', size = '', category = '',product_image='' } = element;
+                    let obj = { 'id': id, 'name': name, 'price': price, 'discount_price': discount_price, 'description': description, 'color': color, 'size': size, 'category': category ,'productImage':product_image}
+                    products.push(obj);
+                    resolve(products);
+                });
+            }
+        })
+    });
+    return productsData;
+}
+
+module.exports = { checkemailExits, getProducts };
 

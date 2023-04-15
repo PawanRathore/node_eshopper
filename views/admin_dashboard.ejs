@@ -8,43 +8,35 @@
     <%- include('./partials/admin_menu'); -%>
     <!-- Contact Start -->
     <div class="container-fluid pt-5">
+        <table style="width:100%;">
+            <tr>
+                <td>Sr.</td>
+                <td>Product image</td>
+                <td>Name</td>
+                <td>Price</td>
+                <td>discount price</td>
+                <td>Description</td>
+                <td>Category</td>
+                <td>Staus</td>
+            </tr>
+            <%  products.forEach((item,index)=> {                   
+                %>
+            <tr> 
+                <td><%= index+1 %> </td>
+                <td>                      
+                    <img src="uploads/<%= item.productImage %>" width="250px;">  
+                </td>
+                <td><%= item.name %></td>
+                <td><%= item.price %></td>
+                <td><%= item.discount_price %></td>
+                <td><%= item.description %></td>
+                <td><%= item.category %></td>
+                <td><%= item.staus %></td>
+                
+            </tr>
+            <% }); %>
+        </table>
         
-        <div class="row px-xl-5">
-            <div class="col-12">
-                <div class="contact-form">
-                    <div id="success"></div>
-                    <!-- <form name="sentMessage" id="contactForm" novalidate="novalidate"> -->
-                        <div class="control-group">
-                            <input type="text" class="form-control" name="name" id="name" placeholder="Your Name"
-                                required="required" data-validation-required-message="Please enter your name" />
-                            <p class="help-block text-danger"></p>
-                        </div>
-                        <div class="control-group">
-                            <input type="email" class="form-control" name="email" id="email" placeholder="Your Email"
-                                required="required" data-validation-required-message="Please enter your email" />
-                            <p class="help-block text-danger"></p>
-                        </div>
-                        <div class="control-group">
-                            <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject"
-                                required="required" data-validation-required-message="Please enter a subject" />
-                            <p class="help-block text-danger"></p>
-                        </div>
-                        <div class="control-group">
-                            <textarea class="form-control" rows="6" name="message"  id="message" placeholder="Message"
-                                required="required"
-                                data-validation-required-message="Please enter your message"></textarea>
-                            <p class="help-block text-danger"></p>
-                        </div>
-                        <div>
-                            <button class="btn btn-primary py-2 px-4" type="submit" id="sendMessageButton" onclick="contactUs();">Send
-                                Message</button>
-                        </div>
-                    <!-- </form> -->
-                </div>
-            </div>
-
-            
-        </div>
     </div>
     <!-- Contact End -->
 

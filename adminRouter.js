@@ -1,11 +1,13 @@
 const express = require('express');
 var { isadminlogin } = require('./isadminLoginMiddleware');
 const { connection } = require('./db/db_connetion');
-const { checkemailExits } = require('./commonfunction');
+const { checkemailExits,getProducts } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 const multer = require('multer');
 const { fileUpload, fileUploadfuction } = require('./fileUpload');
 const { uploadMulter } = require("./fileuploadMulter");
+const { query } = require('express');
+const { json } = require('body-parser');
 
 
 const adminRouter = express.Router()
@@ -52,9 +54,10 @@ adminRouterwithLogin.post('/adminloginpost', (req, res) => {
     })
 })
 
-adminRouter.get('/admin_dashboard', (req, res) => {
-    //res.render('admin_dashboard');
-    res.render('add_product');
+adminRouter.get('/admin_dashboard', async(req, res) => {
+    let products = await getProducts();    
+    console.log(JSON.stringify(products));    
+    res.render('admin_dashboard',{ 'products': products });
 })
 
 adminRouter.get('/add_product', (req, res) => {
@@ -174,7 +177,11 @@ adminRouter.post('/add_product_post', function (req, res) {
         let query = `insert into products (name,price,discount_price,description,color,size,category,product_image) values ('${name}','${price}','${discount_price}','${description}','${color}','${size}','${category}','${uploadFileName}')`;
         connection.query(query,  (err, result) =>{
 
-            if (err) { throw err }
+            if (err) { 
+               // throw err 
+                let resultArray = { 'status': 0, 'message': err.message };
+                res.json(resultArray);
+            }
             else {
                 console.log(JSON.stringify(result));
                 let insertId = result.insertId;
@@ -185,6 +192,12 @@ adminRouter.post('/add_product_post', function (req, res) {
         });
     });
 })
+
+adminRouter.get('productList', async(req,res)=>{
+    let products = await getProducts();    
+    console.log(JSON.stringify(products));    
+    res.render('admin_dashboard',{ 'products': products }); 
+});
 
 // file upload code refrence sites
 // https://www.positronx.io/multer-file-type-validation-tutorial-with-example/
