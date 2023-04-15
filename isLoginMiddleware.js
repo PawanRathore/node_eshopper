@@ -6,6 +6,7 @@ if(req.session.islogin) {
     res.locals.clientId = req.session.id;            
 } else {
     console.log(`isloingMiddlewarelogout`);
+    res.redirect('/login'); 
 }
 next();
 });

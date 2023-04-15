@@ -71,7 +71,7 @@
         success: function (response) {
             console.log(response);
             if(response.status == 1){
-                window.open('/admin_dashboard');    
+                window.open('/admin_dashboard','_self');     
             }else{
                 alert(response.msg);
             }           

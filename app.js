@@ -11,9 +11,11 @@ var { isadminlogin } = require('./isadminLoginMiddleware');
 const { connection } = require('./db/db_connetion');
 const { checkemailExits } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
+const bodyParser = require("body-parser");
 
-const router = express.Router()
-const adminRouter = express.Router()
+
+const router = express.Router() 
+const {adminRouter,adminRouterwithLogin} = require('./adminRouter');
 
 const PORT = 3001;
 
@@ -31,8 +33,15 @@ app.use(session({
     cookie: { maxAge: oneDay }
 }))
 
-adminRouter.use(isadminlogin);
-router.use(islogin);
+// Configurations for "body-parser"
+app.use(
+    bodyParser.urlencoded({
+      extended: true,
+    })
+  ); 
+
+
+router.use(islogin);   
 
 app.get('/', (req, res) => {
     console.log(`root router`);
@@ -52,8 +61,7 @@ app.get('/', (req, res) => {
         res.render('index', { 'products': products });
     })
 
-
-})
+}) 
 
 // router.get('/',(req, res)=>{
 //     console.log(`root router`);  
@@ -183,10 +191,12 @@ app.post('/loginpost', (req, res) => {
             //res.redirect('/loginTest');   
             resdata = { 'status': 1, 'msg': 'login successful' };
             res.json(resdata);
+            res.end();
         } else {
             //res.redirect('/loginTest');   
             resdata = { 'status': 0, 'msg': 'invalid Credential' };
             res.json(resdata);
+            res.end();
         }
     })
 })
@@ -245,9 +255,7 @@ app.post('/registerpost', (req, res) => {
 
 
 
-})
-
-
+}) 
 
 router.get('/dashboard', (req, res) => {
     console.log(`dashboard`);
@@ -261,56 +269,57 @@ app.get('/logout', (req, res) => {
 })
 
 
-app.get('/admin',(req,res)=>{
-    res.render('adminLogin');
-})
+// app.get('/admin',(req,res)=>{
+//     res.render('adminLogin');
+// })
 
-app.post('/adminloginpost', (req, res) => {
-    console.log(`adminloginpost`);
-    let email = req.query.email;
-    let password = req.query.password;
-    console.log(email);
-    console.log(password);
+// app.post('/adminloginpost', (req, res) => {
+//     console.log(`adminloginpost`);
+//     let email = req.query.email;
+//     let password = req.query.password;
+//     console.log(email);
+//     console.log(password);
 
-    let query = `select * from admin where email= '${email}' and password= '${password}'`;
-    console.log(query);
-    connection.query(query, (err, result) => {
-        if (err) throw err
-        let lengthResult = result.length;
-        console.log(`lengthResult ${lengthResult}`);
+//     let query = `select * from admin where email= '${email}' and password= '${password}'`;
+//     console.log(query);
+//     connection.query(query, (err, result) => {
+//         if (err) throw err
+//         let lengthResult = result.length;
+//         console.log(`lengthResult ${lengthResult}`);
 
-        if (lengthResult > 0) {
-            console.log(`ok`);
-            let name = result[0].name;
-            let id = result[0].id;
-            console.log('admin name : '+name);
-            req.session.isadminlogin = 1;
-            req.session.adminName = name;
-            req.session.adminId = id;
-            console.log(JSON.stringify(result));
-            //res.redirect('/loginTest');   
-            resdata = { 'status': 1, 'msg': 'login successful' };
-            res.json(resdata);
-        } else {
-            //res.redirect('/loginTest');   
-            resdata = { 'status': 0, 'msg': 'invalid Credential' };
-            res.json(resdata);
-        }
-    })
-}) 
+//         if (lengthResult > 0) {
+//             console.log(`ok`);
+//             let name = result[0].name;
+//             let id = result[0].id;
+//             console.log('admin name : '+name);
+//             req.session.isadminlogin = 1;
+//             req.session.adminName = name;
+//             req.session.adminId = id;
+//             console.log(JSON.stringify(result));
+//             //res.redirect('/loginTest');   
+//             resdata = { 'status': 1, 'msg': 'login successful' };
+//             res.json(resdata);
+//         } else {
+//             //res.redirect('/loginTest');   
+//             resdata = { 'status': 0, 'msg': 'invalid Credential' };
+//             res.json(resdata);
+//         }
+//     })
+// }) 
 
-adminRouter.get('/admin_dashboard',(req,res)=>{
-    res.render('admin_dashboard');
-})
+// adminRouter.get('/admin_dashboard',(req,res)=>{
+//     res.render('admin_dashboard');
+// })
 
-adminRouter.post('/admin_dashboard',(req,res)=>{
-    res.render('admin_dashboard'); 
-})
+// adminRouter.post('/admin_dashboard',(req,res)=>{
+//     res.render('admin_dashboard'); 
+// })
 
-adminRouter.get('/add_product',(req, res)=>{
-    res.render('add_product');
-})
+// adminRouter.get('/add_product',(req, res)=>{
+//     res.render('add_product');
+// }) 
 
+app.use(adminRouterwithLogin); 
 app.use(adminRouter);
 app.use(router);
 
