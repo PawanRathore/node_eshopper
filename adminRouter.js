@@ -9,11 +9,11 @@ const { uploadMulter } = require("./fileuploadMulter");
 const { query } = require('express');
 const { json } = require('body-parser');
 
-
 const adminRouter = express.Router()
-const adminRouterwithLogin = express.Router()
+const adminRouterwithLogin = express.Router() 
+const adminMiddlware = [isadminlogin]
 
-adminRouter.use(isadminlogin);
+
 
 adminRouterwithLogin.get('/admin', (req, res) => {
     console.log('admin');
@@ -54,13 +54,13 @@ adminRouterwithLogin.post('/adminloginpost', (req, res) => {
     })
 })
 
-adminRouter.get('/admin_dashboard', async(req, res) => {
+adminRouter.get('/admin_dashboard', adminMiddlware , async(req, res) => {
     let products = await getProducts();    
     console.log(JSON.stringify(products));    
     res.render('admin_dashboard',{ 'products': products });
 })
 
-adminRouter.get('/add_product', (req, res) => {
+adminRouter.get('/add_product',adminMiddlware, (req, res) => {
     console.log('add_product');
     res.render('add_product');
 })
@@ -76,7 +76,7 @@ adminRouter.get('/add_product', (req, res) => {
 //         const fileName = file.originalname.toLowerCase().split(' ').join('-');
 //         cb(null, fileName)
 //     }
-// });
+// }); 
 
 // var upload = multer({
 //     storage: storage,
@@ -99,7 +99,7 @@ adminRouter.get('/add_product', (req, res) => {
 //     }
 // }).single('myFile');
 
-adminRouter.post('/add_product_post', function (req, res) {
+adminRouter.post('/add_product_post',adminMiddlware, function (req, res) {
 
     // fileUpload(req, res, function (err) {
     //     if (err) {
@@ -193,11 +193,13 @@ adminRouter.post('/add_product_post', function (req, res) {
     });
 })
 
-adminRouter.get('productList', async(req,res)=>{
+adminRouter.get('productList', adminMiddlware, async(req,res)=>{
     let products = await getProducts();    
     console.log(JSON.stringify(products));    
     res.render('admin_dashboard',{ 'products': products }); 
 });
+
+//adminRouter.use(isadminlogin);
 
 // file upload code refrence sites
 // https://www.positronx.io/multer-file-type-validation-tutorial-with-example/

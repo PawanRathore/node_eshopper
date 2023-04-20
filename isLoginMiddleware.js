@@ -5,8 +5,8 @@ if(req.session.islogin) {
     res.locals.clientName =  req.session.clientName;
     res.locals.clientId = req.session.id;            
 } else {
-    console.log(`isloingMiddlewarelogout`);
-    res.redirect('/login'); 
+    console.log(`isloginMiddlewarelogout`); 
+    return  res.redirect('/login');     
 }
 next();
 });

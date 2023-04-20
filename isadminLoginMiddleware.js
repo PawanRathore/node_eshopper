@@ -6,9 +6,8 @@ if(req.session.isadminlogin) {
     res.locals.adminName =  req.session.adminName;
     res.locals.adminId = req.session.adminId;            
 } else {
-    console.log(`isloingMiddlewarelogout`);
-    res.redirect('/admin'); 
-    //res.end(); 
+    console.log(`isadminloingMiddlewarelogout`);
+    return  res.redirect('/admin');     
 }
 next();
 });

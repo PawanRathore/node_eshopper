@@ -6,16 +6,17 @@ var session = require('express-session');
 const nodemailer = require('nodemailer');
 
 var { islogin } = require('./isLoginMiddleware');
-var { isadminlogin } = require('./isadminLoginMiddleware');
+var { loginMenu } = require('./loginMenuMiddleware');
+//var { isadminlogin } = require('./isadminLoginMiddleware');
 
 const { connection } = require('./db/db_connetion');
 const { checkemailExits } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 const bodyParser = require("body-parser");
-
-
-const router = express.Router() 
 const {adminRouter,adminRouterwithLogin} = require('./adminRouter');
+const router = express.Router() ;
+router.use(loginMenu);   
+const LoginMiddleware= [islogin]; 
 
 const PORT = 3001;
 
@@ -41,9 +42,9 @@ app.use(
   ); 
 
 
-router.use(islogin);   
 
-app.get('/', (req, res) => {
+
+router.get('/', (req, res) => {
     console.log(`root router`);
 
     connection.query('SELECT * from products where staus=1', (err, result) => {
@@ -68,7 +69,7 @@ app.get('/', (req, res) => {
 //     res.render('index');
 // })
 
-router.get('/shop', (req, res) => {
+router.get('/shop', (req, res) => { 
     console.log(`shop router`);
     res.render('shop');
 })
@@ -93,7 +94,7 @@ router.get('/contact', (req, res) => {
     res.render('contact');
 })
 
-router.post('/contactPost', async (req, res) => {
+app.post('/contactPost', async (req, res) => {
     let { name = '', email = '', subject = '', message = '' } = req.query;
 
     email = email.trim();
@@ -160,7 +161,7 @@ router.post('/contactPost', async (req, res) => {
 
 })
 
-app.get('/login', (req, res) => {
+router.get('/login', (req, res) => {
     console.log(`login router`);
     res.render('login');
 })
@@ -255,9 +256,9 @@ app.post('/registerpost', (req, res) => {
 
 
 
-}) 
+})  
 
-router.get('/dashboard', (req, res) => {
+app.get('/dashboard', LoginMiddleware, (req, res) => {
     console.log(`dashboard`);
     res.render('dashboard');
 })
@@ -317,10 +318,10 @@ app.get('/logout', (req, res) => {
 
 // adminRouter.get('/add_product',(req, res)=>{
 //     res.render('add_product');
-// }) 
+// })  
 
-app.use(adminRouterwithLogin); 
-app.use(adminRouter);
+app.use(adminRouterwithLogin);
+app.use(adminRouter); 
 app.use(router);
 
 app.listen(PORT, (error) => {
