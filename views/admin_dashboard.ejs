@@ -3,68 +3,70 @@
 
 <%- include('./partials/head'); -%>
 
-<body>
-    <%- include('./partials/header'); -%>
-    <%- include('./partials/admin_menu'); -%>
-    <!-- Contact Start -->
-    <div class="container-fluid pt-5">
-        <table style="width:100%;">
-            <tr>
-                <td>Sr.</td>
-                <td>Product image</td>
-                <td>Name</td>
-                <td>Price</td>
-                <td>discount price</td>
-                <td>Description</td>
-                <td>Category</td>
-                <td>Staus</td>
-            </tr>
-            <%  products.forEach((item,index)=> {                   
-                %>
-            <tr> 
-                <td><%= index+1 %> </td>
-                <td>                      
-                    <img src="uploads/<%= item.productImage %>" width="250px;">  
-                </td>
-                <td><%= item.name %></td>
-                <td><%= item.price %></td>
-                <td><%= item.discount_price %></td>
-                <td><%= item.description %></td>
-                <td><%= item.category %></td>
-                <td><%= item.staus %></td>
-                
-            </tr>
-            <% }); %>
-        </table>
-        
-    </div>
-    <!-- Contact End -->
+    <body>
+        <%- include('./partials/header'); -%>
+            <%- include('./partials/admin_menu'); -%>
+                <%- include('admin_breadcum'); -%>
+                <!-- Contact Start -->
+                <div class="container-fluid pt-5">
+                    <div class="row">
+                        <div class="col-2">
+                            <%- include('./partials/admin_left_menu'); -%>
+                        </div>
+                        <div class="col-10">
+                            <table style="width:100%;" id="myTable">
+                                <thead>
+                                    <tr>
+                                        <th>Sr.</th>
+                                        <th>Product image</th>
+                                        <th>Name</th>
+                                        <th>Price</th>
+                                        <th>discount price</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th>Staus</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% products.forEach((item,index)=> {
+                                        %>
+                                        <tr>
+                                            <td>
+                                                <%= index+1 %>
+                                            </td>
+                                            <td>
+                                                <img src="uploads/<%= item.productImage %>" width="250px;">
+                                            </td>
+                                            <td>
+                                                <%= item.name %>
+                                            </td>
+                                            <td>
+                                                <%= item.price %>
+                                            </td>
+                                            <td>
+                                                <%= item.discount_price %>
+                                            </td>
+                                            <td>
+                                                <%= item.description %>
+                                            </td>
+                                            <td>
+                                                <%= item.category %>
+                                            </td>
+                                            <td>
+                                                <%= item.staus %>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                <tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- Contact End -->
+                <%- include('./partials/footer'); -%>
+    </body>
 
 
-    <%- include('./partials/footer'); -%>
-</body>
-
-<script>
-    function contactUs(){ 
-        let email = $('#email').val();
-        let name = $('#name').val();
-        let message = $('#message').val();
-        let subject = $('#subject').val();
-        console.log(name,email,message,subject);
-        
-        $.ajax({
-        url: "contactPost?email="+email+"&name="+name+"&subject="+subject+"&message="+message,
-        type: "post",  
-        success: function (response) {
-            console.log(response); 
-            alert(response.message);                  
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-           console.log(textStatus, errorThrown);
-        }
-        }); 
-              
-    }
-</script>
 
 </html>

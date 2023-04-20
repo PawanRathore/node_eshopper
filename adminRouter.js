@@ -1,5 +1,7 @@
 const express = require('express');
 var { isadminlogin } = require('./isadminLoginMiddleware');
+var { adminBreadcum } = require('./admin_breacumMiddleware');
+
 const { connection } = require('./db/db_connetion');
 const { checkemailExits,getProducts } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
@@ -11,7 +13,7 @@ const { json } = require('body-parser');
 
 const adminRouter = express.Router()
 const adminRouterwithLogin = express.Router() 
-const adminMiddlware = [isadminlogin]
+const adminMiddlware = [isadminlogin,adminBreadcum]
 
 
 

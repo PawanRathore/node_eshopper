@@ -6,11 +6,14 @@
 <body>
     <%- include('./partials/header'); -%>
     <%- include('./partials/admin_menu'); -%>
+    <%- include('admin_breadcum'); -%>
     <!-- Contact Start -->
     <div class="container-fluid pt-5">
-        
-        <div class="row px-xl-5">
-            <div class="col-12">
+        <div class="row">
+            <div class="col-2">
+                <%- include('./partials/admin_left_menu'); -%>
+            </div>
+            <div class="col-10">
                 <div class="contact-form"> 
                     <div id="success"></div>
                      <form name="sentMessage" id="productForm" action="add_product_post" enctype="multipart/form-data" method="post"> 
@@ -51,9 +54,8 @@
                      </form> 
                 </div>
             </div>
-
-            
         </div>
+
     </div>
     <!-- Contact End --> 
 

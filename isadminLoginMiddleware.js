@@ -12,4 +12,4 @@ if(req.session.isadminlogin) {
 next();
 });
 
-module.exports = {isadminlogin}; 
+module.exports = {isadminlogin};    

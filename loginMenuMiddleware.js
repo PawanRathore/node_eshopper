@@ -3,7 +3,7 @@ const loginMenu = ((req, res,next)=>{
 if(req.session.islogin) {
     console.log(`loginMenuMiddlware`);   
     res.locals.clientName =  req.session.clientName;
-    res.locals.clientId = req.session.id;            
+    res.locals.clientId = req.session.id;
 } 
 next();
 });
