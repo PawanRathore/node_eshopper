@@ -3,7 +3,7 @@ var { isadminlogin } = require('./isadminLoginMiddleware');
 var { adminBreadcum } = require('./admin_breacumMiddleware');
 
 const { connection } = require('./db/db_connetion');
-const { checkemailExits,getProducts } = require('./commonfunction');
+const { checkemailExits,getProducts,categories } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 const multer = require('multer');
 const { fileUpload, fileUploadfuction } = require('./fileUpload');
@@ -195,11 +195,90 @@ adminRouter.post('/add_product_post',adminMiddlware, function (req, res) {
     });
 })
 
-adminRouter.get('productList', adminMiddlware, async(req,res)=>{
+
+
+adminRouter.get('/productList', adminMiddlware, async(req,res)=>{
     let products = await getProducts();    
-    console.log(JSON.stringify(products));    
+    //console.log(JSON.stringify(products));    
     res.render('admin_dashboard',{ 'products': products }); 
 });
+
+// adminRouter.get('/add_category', adminMiddlware,  async(req,res)=>{
+//     //console.log('add_category');
+//     res.render('add_category');  
+// });
+
+adminRouter.get('/add_category', adminMiddlware,  async(req,res)=>{
+    console.log('add_category');
+    console.log(req.query);
+    let id = req.query.id; 
+    console.log(`Edit Id : ${id}`);
+    let cdata =  [];
+    if(id){
+        let sqlQuery = `select * from category where id= ${id}`;
+        connection.query(sqlQuery,(err,result)=>{
+            console.log(result);
+            console.log(result[0].id);
+            if(result[0].id){
+              let obj =   {'id':result[0].id,'name':result[0].name,'status':result[0].status};
+              cdata.push(obj); 
+            }
+            console.log(cdata);       
+        res.render('add_category',{'id':result[0].id,'name':result[0].name,'status':result[0].status});
+        });        
+    }else{
+        //res.redirect('/logout');
+        res.render('add_category',{'id':'','name':'','status':''});
+    }     
+});
+
+adminRouter.post('/add_category_post', adminMiddlware,  async(req,res)=>{
+        console.log(req.body);
+        let {name='',status='0', cid=''} =   req.body;
+        let sqlQuery = `insert into category (name,status)values('${name}','${status}')`;
+    if(cid){
+        sqlQuery = `update category set name='${name}',status='${status}' where id='${cid}'`;  
+    }
+   console.log(sqlQuery);
+   connection.query(sqlQuery,(err,result)=>{           
+        if (err) { 
+            // throw err 
+             let resultArray = { 'status': 0, 'message': err.message };
+             //res.json(resultArray);
+             res.redirect('/category_list');
+         }
+         else {
+             console.log(JSON.stringify(result));
+             let insertId = result.insertId;
+             let resultArray = { 'status': 1, 'message': 'Category Save Successfully' };
+             //res.json(resultArray);
+             res.redirect('/category_list');
+         }
+           
+   });
+});
+
+adminRouter.get('/category_list',adminMiddlware, async(req,res)=>{
+    let categoriesList =  await categories();
+    console.log( JSON.stringify(categoriesList));
+    res.render('category_list',{'categories':categoriesList});
+})
+
+adminRouter.get('/delete_category',async(req, res)=>{
+        let id =  req.query.id
+         if(id){ 
+         let sqlQuery = `delete from category where id='${id}'`;
+          connection.query(sqlQuery,(err,result)=>{
+             if(err){
+                console.log(err);
+             }else{
+                res.redirect('/category_list');
+             }
+          }); 
+        }else{
+            res.redirect('/category_list');
+        }
+})
 
 //adminRouter.use(isadminlogin);
 

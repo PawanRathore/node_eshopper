@@ -267,7 +267,10 @@ app.get('/logout', (req, res) => {
     req.session.destroy();
     console.log(`logout`);
     res.redirect('/');
-})
+}); 
+app.get('pawan',(req,res)=>{
+    console.log(`pawan`);
+});
 
 
 // app.get('/admin',(req,res)=>{
@@ -320,7 +323,7 @@ app.get('/logout', (req, res) => {
 //     res.render('add_product');
 // })  
 
-app.use(adminRouterwithLogin);
+app.use(adminRouterwithLogin); 
 app.use(adminRouter); 
 app.use(router);
 

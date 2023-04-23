@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('./partials/head'); -%>
+
+<body>
+    <%- include('./partials/header'); -%>
+    <%- include('./partials/admin_menu'); -%>
+    <%- include('admin_breadcum'); -%>
+    <!-- Contact Start -->
+    <div class="container-fluid pt-5">
+        <div class="row">
+            <div class="col-2">
+                <%- include('./partials/admin_left_menu'); -%>
+            </div>
+            <div class="col-10">
+                <div class="contact-form"> 
+                    <div id="success"></div>
+                    <form name="add" id="categoryForm" action="add_category_post" method="post">
+                        <input type="hidden" id="cid" name="cid" value="<%= id %>"> 
+                        <div class="control-group">
+                            <input type="text" class="form-control" name="name" value="<%= name %>" id="name" placeholder="Category Name"
+                                required="required" data-validation-required-message="Please enter Category name" />
+                            <p class="help-block text-danger"></p>
+                        </div>
+
+                        <div class="form-group">
+                            <select required name="status" id="status" class="form-control">
+                                <option value=""> </option>
+                                <option value="1" <% if(status==1){ %> selected <% } %>  > Active  </option>
+                                <option value="0" <% if(status==0){ %> selected <% } %> > Disable </option>
+                            </select>
+                        </div> 
+
+                        <div class="control-group">
+                            <button class="btn btn-primary py-2 px-4" type="submit" id="saveCetegory"> Save </button>
+                        </div>
+                    </form> 
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- Contact End --> 
+    <%- include('./partials/footer'); -%>
+</body>
+
+<script>
+    function contactUs(){ 
+        let email = $('#email').val();
+        let name = $('#name').val();
+        let message = $('#message').val();
+        let subject = $('#subject').val();
+        console.log(name,email,message,subject);
+        
+        $.ajax({
+        url: "contactPost?email="+email+"&name="+name+"&subject="+subject+"&message="+message,
+        type: "post",  
+        success: function (response) {
+            console.log(response); 
+            alert(response.message);                  
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+        }); 
+              
+    }
+</script>
+
+</html>

@@ -1,3 +1,4 @@
+const { promises } = require('nodemailer/lib/xoauth2');
 const { connection } = require('./db/db_connetion');
 
 const checkemailExits = async (email, table = 'users') => {
@@ -52,5 +53,28 @@ const getProducts = async (type = 'all') => {
     return productsData;
 }
 
-module.exports = { checkemailExits, getProducts };
+const categories = async(type='')=>{
+    let categoriesList= await new Promise((resolve, reject)=>{
+        let sqlQuery = `select * from category`;
+        if(type){
+        let sqlQuery = `select * from category where status= '${type}'`;
+        }
+        console.log(sqlQuery);
+        connection.query(sqlQuery,(err,result)=>{
+            if(err){ reject(err.toString); }
+            let categoriesData = [];
+            if(result.length>0){
+                result.forEach(element=>{
+                    let { id = '', name = '', status = '' } = element;
+                    let obj = { 'id': id, 'name': name, 'status': status}
+                    categoriesData.push(obj);
+                    resolve(categoriesData);
+                });
+            }
+        });
+    });
+    return categoriesList;    
+}
+
+module.exports = { checkemailExits, getProducts,categories };
 

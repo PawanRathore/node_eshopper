@@ -58,32 +58,6 @@
 
     </div>
     <!-- Contact End --> 
-
-
     <%- include('./partials/footer'); -%>
 </body>
-
-<script>
-    function contactUs(){ 
-        let email = $('#email').val();
-        let name = $('#name').val();
-        let message = $('#message').val();
-        let subject = $('#subject').val();
-        console.log(name,email,message,subject);
-        
-        $.ajax({
-        url: "contactPost?email="+email+"&name="+name+"&subject="+subject+"&message="+message,
-        type: "post",  
-        success: function (response) {
-            console.log(response); 
-            alert(response.message);                  
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-           console.log(textStatus, errorThrown);
-        }
-        }); 
-              
-    }
-</script>
-
 </html>

@@ -35,7 +35,11 @@
                                                 <%= index+1 %>
                                             </td>
                                             <td>
+                                                <%  
+                                                if(item.productImage){
+                                                %>
                                                 <img src="uploads/<%= item.productImage %>" width="250px;">
+                                                <% } %>
                                             </td>
                                             <td>
                                                 <%= item.name %>
