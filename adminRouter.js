@@ -3,13 +3,14 @@ var { isadminlogin } = require('./isadminLoginMiddleware');
 var { adminBreadcum } = require('./admin_breacumMiddleware');
 
 const { connection } = require('./db/db_connetion');
-const { checkemailExits,getProducts,categories } = require('./commonfunction');
+const { checkemailExits,getProducts,categories,categoriesMapping } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 const multer = require('multer');
 const { fileUpload, fileUploadfuction } = require('./fileUpload');
 const { uploadMulter } = require("./fileuploadMulter");
 const { query } = require('express');
 const { json } = require('body-parser');
+const path = require('path');
 
 const adminRouter = express.Router()
 const adminRouterwithLogin = express.Router() 
@@ -57,14 +58,34 @@ adminRouterwithLogin.post('/adminloginpost', (req, res) => {
 })
 
 adminRouter.get('/admin_dashboard', adminMiddlware , async(req, res) => {
+    const categoriesMappingData = await categoriesMapping();     
     let products = await getProducts();    
-    console.log(JSON.stringify(products));    
-    res.render('admin_dashboard',{ 'products': products });
+    products.forEach(product => {
+        product.category = product.category ? categoriesMappingData[product.category].name : '';
+    });  
+    res.render('admin_dashboard',{ 'products': products,'categoriesMapping':categoriesMappingData});
 })
 
-adminRouter.get('/add_product',adminMiddlware, (req, res) => {
+adminRouter.get('/add_product',adminMiddlware, async(req, res) => {
+    
+    let activeCategories = await categories('1');
     console.log('add_product');
-    res.render('add_product');
+    let pid = req.query.id;
+    if(pid){
+        let sqlQuery = `select * from products where id= ${pid}`;
+        connection.query(sqlQuery,(err,result)=>{
+            //console.log(result);
+            console.log(result);
+            let productsDetails = JSON.parse(JSON.stringify(result[0]));
+            console.log('results : '+JSON.stringify(productsDetails));
+            // process.exit();  
+            res.render('add_product',{'categories':activeCategories,'productsDetails': result});
+        }); 
+    }else{
+        let result = [{"id":'',"name":"","price":"","discount_price":"","description":"","color":"","":"","category":"","product_image":"","staus":'',"insert_at":"","update_at":""}];
+        res.render('add_product',{'categories':activeCategories,'productsDetails': result}); 
+    }
+    
 })
 
 // const DIR = './uploads/';
@@ -175,10 +196,25 @@ adminRouter.post('/add_product_post',adminMiddlware, function (req, res) {
         }
 
         console.log("Product Name - : ", req.body.name); 
-        let {name='',price='',discount_price='',description='',color='',size='',category=''} = req.body;
-        let query = `insert into products (name,price,discount_price,description,color,size,category,product_image) values ('${name}','${price}','${discount_price}','${description}','${color}','${size}','${category}','${uploadFileName}')`;
+        //let pid = req.body.pid; 
+        
+        let {name='',price='',discount_price='',description='',color='',size='',category='',pid =''} = req.body;
+        let query ="";
+        let qmessage = "";
+        if(pid){
+          query = `update products set name='${name}',price='${price}',discount_price='${discount_price}',description='${description}',color='${color}',size='${size}',category='${category}'`;
+          if(uploadFileName!=''){
+          query+= `,product_image='${uploadFileName}'`;         
+          }
+          query+= `where id = '${pid}'`;
+          qmessage = 'Prodcut Update Successfully';
+        }else{
+         query = `insert into products (name,price,discount_price,description,color,size,category,product_image) 
+         values ('${name}','${price}','${discount_price}','${description}','${color}','${size}','${category}','${uploadFileName}')`;
+        qmessage = 'Prodcut Save Successfully';
+        }
+        console.log(query);
         connection.query(query,  (err, result) =>{
-
             if (err) { 
                // throw err 
                 let resultArray = { 'status': 0, 'message': err.message };
@@ -187,7 +223,7 @@ adminRouter.post('/add_product_post',adminMiddlware, function (req, res) {
             else {
                 console.log(JSON.stringify(result));
                 let insertId = result.insertId;
-                let resultArray = { 'status': 1, 'message': 'Prodcut Save Successfully' };
+                let resultArray = { 'status': 1, 'message':qmessage};
                 res.json(resultArray);
             }
             
@@ -207,6 +243,19 @@ adminRouter.get('/productList', adminMiddlware, async(req,res)=>{
 //     //console.log('add_category');
 //     res.render('add_category');  
 // });
+
+adminRouter.get('/delete_product',adminMiddlware,async(req,res)=>{
+        let id = req.query.id;
+        if(id){
+            let sqlQuery = `delete from products where id='${id}'`;
+            connection.query(sqlQuery,(err, result)=>{
+                if(err){}
+                if(result){
+                    res.redirect('/admin_dashboard');
+                }
+            })
+        }
+})
 
 adminRouter.get('/add_category', adminMiddlware,  async(req,res)=>{
     console.log('add_category');
@@ -264,7 +313,7 @@ adminRouter.get('/category_list',adminMiddlware, async(req,res)=>{
     res.render('category_list',{'categories':categoriesList});
 })
 
-adminRouter.get('/delete_category',async(req, res)=>{
+adminRouter.get('/delete_category',adminMiddlware, async(req, res)=>{
         let id =  req.query.id
          if(id){ 
          let sqlQuery = `delete from category where id='${id}'`;

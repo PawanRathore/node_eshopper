@@ -76,5 +76,71 @@ const categories = async(type='')=>{
     return categoriesList;    
 }
 
-module.exports = { checkemailExits, getProducts,categories };
+const categoriesMapping = async(type='')=>{
+    let getcategories=  await categories();
+    let categoriesMapping = await new Promise((resolve, reject)=>{
+    console.log('categoriesMapping');
+    console.log(JSON.stringify(getcategories));
+    let categoriesData = {};
+    if(getcategories.length>0){
+        getcategories.forEach(element=>{
+                        let { id = '', name = '', status = '' } = element;
+                        let obj = { 'id': id, 'name': name, 'status': status}
+                        //categoriesData.push(obj);
+                        categoriesData[id] = obj;
+                        resolve(categoriesData);
+                    });
+                }
+            });
+    
+    
+    // let categoriesMapping = await new Promise((resolve, reject)=>{
+    //     let sqlQuery = `select * from category`;        
+    //     console.log(sqlQuery);
+    //     let categoriesData = {};
+    //     connection.query(sqlQuery,(err,result)=>{
+    //         if(err){ 
+    //             console.log(err.toString); 
+    //             reject(categoriesData);
+    //         }            
+    //         if(result.length>0){
+    //             result.forEach(element=>{
+    //                 let { id = '', name = '', status = '' } = element;
+    //                 let obj = { 'id': id, 'name': name, 'status': status}
+    //                 //categoriesData.push(obj);
+    //                 categoriesData[id] = obj;
+    //                 resolve(categoriesData);
+    //             });
+    //         }
+    //     });
+    // });
+    console.log(JSON.stringify(categoriesMapping)); 
+
+    return categoriesMapping;    
+} 
+
+const productDetails = async (productId)=>{   
+    let productsDetailArray = {}; 
+    if(productId) { 
+        let sqlQuery = `select * from products where id='${productId}'`;
+        console.log(sqlQuery);
+        productsDetailArray = await new Promise((resolve, reject)=>{
+            let productsDetailData = {};
+            connection.query(sqlQuery,(err,result)=>{
+                if(err){
+                    console.log(err.message.toString); 
+                    reject(productsDetailData);            
+                }
+                console.log(result.length);
+                if(result.length>0){
+                    productsDetailData = JSON.parse(JSON.stringify(result[0]));   
+                    resolve(productsDetailData);         
+                }
+            })
+       })
+    }      
+  return productsDetailArray;
+}
+
+module.exports = { checkemailExits, getProducts , categories , categoriesMapping , productDetails};
 

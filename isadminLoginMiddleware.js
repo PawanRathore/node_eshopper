@@ -9,7 +9,7 @@ if(req.session.isadminlogin) {
     console.log(`isadminloingMiddlewarelogout`);
     return  res.redirect('/admin');     
 }
-next();
+next(); 
 });
 
-module.exports = {isadminlogin};    
+module.exports = {isadminlogin};   

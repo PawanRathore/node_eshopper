@@ -25,6 +25,7 @@
                                         <th>Description</th>
                                         <th>Category</th>
                                         <th>Staus</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -53,11 +54,21 @@
                                             <td>
                                                 <%= item.description %>
                                             </td>
-                                            <td>
-                                                <%= item.category %>
+                                            <td>                                               
+                                                 <%= item.category %>  
                                             </td>
                                             <td>
                                                 <%= item.staus %>
+                                            </td>
+                                            <td> 
+
+                                                <a target="_blank" href="/add_product?id=<%= item.id %>">
+                                                    <i class="fa fa-edit" aria-hidden="true"></i>
+                                                </a>
+
+                                                <a href="/delete_product?id=<%= item.id %>">
+                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                         <% }); %>

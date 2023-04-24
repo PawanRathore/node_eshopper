@@ -10,7 +10,7 @@ var { loginMenu } = require('./loginMenuMiddleware');
 //var { isadminlogin } = require('./isadminLoginMiddleware');
 
 const { connection } = require('./db/db_connetion');
-const { checkemailExits } = require('./commonfunction');
+const { checkemailExits, productDetails } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 const bodyParser = require("body-parser");
 const {adminRouter,adminRouterwithLogin} = require('./adminRouter');
@@ -21,7 +21,9 @@ const LoginMiddleware= [islogin];
 const PORT = 3001;
 
 //app.use(express.bodyParser());
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/public')); 
+//app.use(express.static('/uploads')); 
+app.use('/uploads', express.static('uploads'));
 
 // Set EJS as templating engine 
 app.set('view engine', 'ejs');
@@ -74,9 +76,16 @@ router.get('/shop', (req, res) => {
     res.render('shop');
 })
 
-router.get('/detail', (req, res) => {
+router.get('/detail', async (req, res) => {
     console.log(`detail router`);
-    res.render('detail');
+    //let productsDetails = {};
+    if(req.query.id){
+        let productsDetail = await productDetails(req.query.id);        
+        console.log(JSON.stringify(productsDetail));
+        res.render('detail',productsDetail);        
+    } else{
+        res.redirect('/');
+    }     
 })
 
 router.get('/cart', (req, res) => {
@@ -150,9 +159,6 @@ app.post('/contactPost', async (req, res) => {
                     res.json(resultArray);
                 }
             })
-
-
-
         }
     } else {
         let resultArray = { 'status': 0, 'message': 'Please Enter all the details' };
@@ -201,7 +207,6 @@ app.post('/loginpost', (req, res) => {
         }
     })
 })
-
 
 router.get('/Register', (req, res) => {
     console.log(`Register router`);
@@ -268,9 +273,6 @@ app.get('/logout', (req, res) => {
     console.log(`logout`);
     res.redirect('/');
 }); 
-app.get('pawan',(req,res)=>{
-    console.log(`pawan`);
-});
 
 
 // app.get('/admin',(req,res)=>{
