@@ -86,6 +86,23 @@
 <!-- Template Javascript -->
 <script src="js/main.js"></script>
 
+<script> 
+    function addToCard (productId) {
+        console.log(productId);        
+        $.ajax({
+        url: "addToCard?productId="+productId,
+        type: "post",  
+        success: function (response) {
+            console.log(response);
+            alert(response.msg);                       
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+        });
+    }
+    </script>
+
 <script>
     //let table = new DataTable('#myTable');
     let table = new DataTable('#myTable', {

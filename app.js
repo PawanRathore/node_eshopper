@@ -10,7 +10,7 @@ var { loginMenu } = require('./loginMenuMiddleware');
 //var { isadminlogin } = require('./isadminLoginMiddleware');
 
 const { connection } = require('./db/db_connetion');
-const { checkemailExits, productDetails } = require('./commonfunction');
+const { checkemailExits, productDetails, checkProductIsAvaliableInCard } = require('./commonfunction');
 const { transporterMail } = require('./mailConfig');
 const bodyParser = require("body-parser");
 const {adminRouter,adminRouterwithLogin} = require('./adminRouter');
@@ -87,6 +87,8 @@ router.get('/detail', async (req, res) => {
         res.redirect('/');
     }     
 })
+
+
 
 router.get('/cart', (req, res) => {
     console.log(`cart router`);
@@ -257,11 +259,49 @@ app.post('/registerpost', (req, res) => {
             })
         }
     })
-
-
-
-
 })  
+
+app.post('/addToCard', async(req,res)=>{
+    let cardMessage='';
+    let status = 0;
+    let productId = req.query.productId; 
+    if(productId){
+        if(req.session.islogin){
+            let userId= req.session.clientId;            
+            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId,userId);
+            console.log(ProductIsAvaliableInCard)
+            if(!ProductIsAvaliableInCard){
+            let sqlQuery = `insert into cart(product_id,user_id)values('${productId}','${userId}');`;
+                connection.query(sqlQuery, (err,result)=>{
+                     if(err){
+                        console.log(err.message);
+                     }else{
+                        cardMessage='Add to card Successfully';
+                        status = 1;
+                        resdata = { 'status': status, 'msg': cardMessage };
+                         res.json(resdata);
+                     }
+                }) 
+            }else{
+                cardMessage='Product already Avalliable in card';
+                status = 0;
+                resdata = { 'status': status, 'msg': cardMessage };
+                res.json(resdata);
+            }       
+        }else{ 
+            cardMessage ='Please Login To Your Account';
+            status = 2;
+            resdata = { 'status': status, 'msg': cardMessage };
+           res.json(resdata);
+        }
+    }else{
+        cardMessage ='Invalid Request';
+        resdata = { 'status': status, 'msg': cardMessage };
+        res.json(resdata);
+    }
+    
+
+})
 
 app.get('/dashboard', LoginMiddleware, (req, res) => {
     console.log(`dashboard`);

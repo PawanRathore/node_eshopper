@@ -140,7 +140,28 @@ const productDetails = async (productId)=>{
        })
     }      
   return productsDetailArray;
+} 
+
+
+const checkProductIsAvaliableInCard = async(productId,userId)=>{
+        let isProductIsAvaliableInCard = await new Promise((resolve, reject)=>{
+        let checkProduct = `SELECT * FROM cart where product_id='${productId}' and user_id='${userId}'`;
+            console.log(checkProduct);
+            connection.query(checkProduct, (err,result)=>{
+                if(err){
+                    reject(0);
+                }
+                console.log(result.length);  
+                if(result.length > 0){                                     
+                    resolve(1); 
+                }else{                                      
+                    resolve(0); 
+                }
+            });
+        }) 
+    console.log(JSON.stringify(isProductIsAvaliableInCard)); 
+    return isProductIsAvaliableInCard;
 }
 
-module.exports = { checkemailExits, getProducts , categories , categoriesMapping , productDetails};
+module.exports = { checkemailExits, getProducts , categories , categoriesMapping , productDetails, checkProductIsAvaliableInCard};
 
