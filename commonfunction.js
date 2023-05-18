@@ -131,7 +131,7 @@ const productDetails = async (productId)=>{
                     console.log(err.message.toString); 
                     reject(productsDetailData);            
                 }
-                console.log(result.length);
+                //console.log(result.length);
                 if(result.length>0){
                     productsDetailData = JSON.parse(JSON.stringify(result[0]));   
                     resolve(productsDetailData);         

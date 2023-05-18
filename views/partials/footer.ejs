@@ -87,6 +87,18 @@
 <script src="js/main.js"></script>
 
 <script> 
+    
+    function updateQuantity(id){
+    setTimeout(() => {
+       let Quantity=  $('#item'+id).val();
+       let price=  $('#price'+id).val();
+       console.log(Quantity);       
+       let total = parseInt(Quantity*price);
+       console.log(total);
+       $('#itemTotal'+id).html(total);             
+        }, 2);             
+    }
+
     function addToCard (productId) {
         console.log(productId);        
         $.ajax({
@@ -100,6 +112,25 @@
            console.log(textStatus, errorThrown);
         }
         });
+    }
+
+    function removeItemFromCard(productId) {
+        let confirmStatus = confirm("Are you sure you want to delete this item");
+        console.log(productId);        
+        if(confirmStatus){
+            $.ajax({
+            url: "removeItemFromCard?productId="+productId,
+            type: "post",  
+            success: function (response) {
+                console.log(response);
+                alert(response.msg);  
+                $('#productRow'+productId).remove();                   
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+            console.log(textStatus, errorThrown);
+            }
+            });
+       }
     }
     </script>
 

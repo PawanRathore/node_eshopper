@@ -3,7 +3,8 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'eshopper'
+  database: 'eshopper',
+  multipleStatements: true
 })
 
 module.exports = {'connection':connection}; 

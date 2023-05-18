@@ -71,7 +71,7 @@
         success: function (response) {
             console.log(response);
             if(response.status == 1){
-                window.open('/dashboard','_self');    
+                window.open(response.redirectUrl,'_self');    
             }           
         },
         error: function(jqXHR, textStatus, errorThrown) {

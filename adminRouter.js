@@ -11,6 +11,7 @@ const { uploadMulter } = require("./fileuploadMulter");
 const { query } = require('express');
 const { json } = require('body-parser');
 const path = require('path');
+require('dotenv').config();
 
 const adminRouter = express.Router()
 const adminRouterwithLogin = express.Router() 
