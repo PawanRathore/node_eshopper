@@ -44,20 +44,33 @@
         <td class="align-middle"> <%= element.productPrice %></td>
         <td class="align-middle">
             <div class="input-group quantity mx-auto" style="width: 100px;">
-                <div class="input-group-btn">
+                <!-- <div class="input-group-btn">
                     <button class="btn btn-sm btn-primary btn-minus"  onclick="updateQuantity('<%= element.producId %>')">
                     <i class="fa fa-minus"></i>
                     </button>
-                </div>
-                <input type="text" class="form-control form-control-sm bg-secondary text-center" id="item<%= element.producId %>" value="1">
-                <div class="input-group-btn">
+                </div> -->
+                <!-- <input type="text" class="form-control form-control-sm bg-secondary text-center" id="item<%= element.producId %>" value="1"> -->
+                <!-- <div class="input-group-btn">
                     <button class="btn btn-sm btn-primary btn-plus" onclick="updateQuantity('<%= element.producId %>')">
                         <i class="fa fa-plus"></i>
-                    </button>
-                </div>
+                    </button>                    
+                </div> -->
+                <select name="Quantity<%= element.producId %>" id="Quantity<%= element.producId %>" onchange="updateQuantity('<%= element.producId %>',this.value,'<%= element.cardItemId %>')">
+                    <% for(var i = 1; i<=10; i++) { 
+                    let seletString =  (i==element.quantity) ? 'selected' : "";    
+                    %>
+                    <option <%= seletString %>  value="<%= i %>">  <%= i %> </option>
+                    <% } %>
+                    
+                </select>
             </div>
         </td>
-        <td class="align-middle"><span  id="itemTotal<%= element.producId %>"> <%= element.productPrice %> </span> </td>
+        <% 
+        let  productPrice = element.productPrice
+        let  quantity = element.quantity
+        let itemTotal = quantity*productPrice;
+        %>
+        <td class="align-middle"><span  id="itemTotal<%= element.producId %>"> <%= itemTotal %> </span> </td>
         <input type="hidden" name="price<%= element.producId %>" id="price<%= element.producId %>" value="<%= element.productPrice %>">
         
         <td class="align-middle">
@@ -71,14 +84,14 @@
                 </table>
             </div>
             <div class="col-lg-4">
-                <form class="mb-5" action="">
-                    <div class="input-group">
-                        <input type="text" class="form-control p-4" placeholder="Coupon Code">
+                <!-- <form class="mb-5" action=""> -->
+                    <div class="input-group" style="margin-bottom: 40px;">
+                        <input type="text" class="form-control p-4" id="CouponCode" name="CouponCode" placeholder="Coupon Code">
                         <div class="input-group-append">
-                            <button class="btn btn-primary">Apply Coupon</button>
+                            <button class="btn btn-primary" onclick="checkCouponCode()">Apply Coupon</button>
                         </div>
                     </div>
-                </form>
+                <!-- </form> -->
                 <div class="card border-secondary mb-5">
                     <div class="card-header bg-secondary border-0">
                         <h4 class="font-weight-semi-bold m-0">Cart Summary</h4>
@@ -86,17 +99,17 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-3 pt-1">
                             <h6 class="font-weight-medium">Subtotal</h6>
-                            <h6 class="font-weight-medium">$150</h6>
+                            <h6 class="font-weight-medium"><span id="subtotal"></span></h6>
                         </div>
                         <div class="d-flex justify-content-between">
                             <h6 class="font-weight-medium">Shipping</h6>
-                            <h6 class="font-weight-medium">$10</h6>
+                            <h6 class="font-weight-medium"><span id="shippingCharge"></span></h6>
                         </div>
                     </div>
                     <div class="card-footer border-secondary bg-transparent">
                         <div class="d-flex justify-content-between mt-2">
                             <h5 class="font-weight-bold">Total</h5>
-                            <h5 class="font-weight-bold">$160</h5>
+                            <h5 class="font-weight-bold"><span id="grandTotal"></span></h5>
                         </div>
                         <button class="btn btn-block btn-primary my-3 py-3">Proceed To Checkout</button>
                     </div>
@@ -105,9 +118,10 @@
         </div>
     </div>
     <!-- Cart End -->
-
-
     <%- include('./partials/footer'); -%>
+    <script>
+        getCardTotal(); 
+    </script>
 </body>
 
 

@@ -150,7 +150,7 @@ router.get('/detail', async (req, res) => {
     
 // }) 
 
-router.get('/cart', async(req, res) => {
+router.get('/cart', LoginMiddleware, async(req, res) => {
     console.log(`cart router`);
     let clientId = req.session.clientId;
     //let clientId = 38;
@@ -178,18 +178,23 @@ router.get('/cart', async(req, res) => {
             for(let element in cartData) {
                 console.log(cartData[element].product_id);
                 let product_id = cartData[element].product_id;
+                let quantity = cartData[element].quantity;
+                let cardItemId = cartData[element].id;
+                
+                if(product_id){
 
                 //let productsSqlQuery = `select * from products where id='${product_id}'`;
                 //const productsResult = await find_data(productsSqlQuery);                
                 //let {id='',name='',price='',product_image='',discount_price=''} = productsResult[0];
                 //console.log(productsResult[0].discount_price);
-
+                
                 let productsResult =  await productDetails(product_id);
                 console.log(productsResult);                
                 let {id='',name='',price='',product_image='',discount_price=''} = productsResult;
-                cardItem =  {'productName':name,'productPrice':price,'productImage':product_image,'producId':id,'discountPrice':discount_price};
+                cardItem =  {'productName':name,'productPrice':price,'productImage':product_image,'producId':id,'discountPrice':discount_price,'quantity':quantity,'cardItemId':cardItemId};
                 console.log((cardItem));
                 cardItemArray.push(cardItem);
+                }
             }
             res.render('cart',{'cardItems':cardItemArray});   
     
@@ -373,7 +378,7 @@ app.post('/registerpost', (req, res) => {
     })
 })  
 
-app.post('/addToCard', async(req,res)=>{
+app.post('/addToCard',  async(req,res)=>{
     let cardMessage='';
     let status = 0;
     let productId = req.query.productId; 
@@ -396,6 +401,108 @@ app.post('/addToCard', async(req,res)=>{
                 }) 
             }else{
                 cardMessage='Product already Avalliable in card';
+                status = 0;
+                resdata = { 'status': status, 'msg': cardMessage };
+                res.json(resdata);
+            }       
+        }else{ 
+            let pageUrl = req.originalUrl; 
+            let baseUrl = process.env.BASE_URL;  
+            console.log(`baseUrl : ${baseUrl}`);
+            console.log(`pageUrl : ${pageUrl}`);
+            res.cookie('pageRedirect',pageUrl, { maxAge: oneDay,httpOnly:false,sameSite: true });
+            cardMessage ='Please Login To Your Account';
+            status = 2;
+            resdata = { 'status': status, 'msg': cardMessage };
+           res.json(resdata);
+        }
+    }else{
+        cardMessage ='Invalid Request';
+        resdata = { 'status': status, 'msg': cardMessage };
+        res.json(resdata);
+    }
+    
+
+})
+
+app.post('/getCardTotal', LoginMiddleware, async(req,res)=>{
+    if(req.session.islogin){
+        console.log('in getCardTotal ');
+        let userId= req.session.clientId;        
+        let sqlQuery = `select * from cart where user_id = '${userId}'`;
+        console.log(sqlQuery);
+        let cartData = await find_data(sqlQuery); 
+        let cardTotal = 0;
+        let status = 1;
+        let cardMessage ='Suc';
+        let shippingCharge = process.env.SHIPPING_CHARGE;
+        let grandTotal = 0; 
+        
+
+        for(let element in cartData) {
+            console.log(element); 
+            //console.log(cartData[element].product_id);
+            let product_id = cartData[element].product_id;
+            let quantity = cartData[element].quantity;
+            let cardItemId = cartData[element].id;
+            
+            if(product_id){
+            let productsResult =  await productDetails(product_id);
+            //console.log(productsResult);                
+            let {id='',name='',price='',product_image='',discount_price=''} = productsResult;
+            console.log('quantity : '+quantity);
+            console.log('price : '+price);
+            console.log(quantity*price);
+            cardTotal += quantity*price;
+            console.log((cardTotal));
+            //cardItemArray.push(cardItem);
+            }
+        }
+        grandTotal = parseInt(cardTotal)+parseInt(shippingCharge);
+
+        console.log(`cardTotal: ${cardTotal}`);
+        resdata = { 'status': status, 'msg': cardMessage ,'cardTotal':cardTotal,'shippingCharge':shippingCharge,'grandTotal':grandTotal};
+        res.json(resdata);
+    }else{ 
+        let pageUrl = req.originalUrl; 
+        let baseUrl = process.env.BASE_URL;  
+        console.log(`baseUrl : ${baseUrl}`);
+        console.log(`pageUrl : ${pageUrl}`);
+        res.cookie('pageRedirect',pageUrl, { maxAge: oneDay,httpOnly:false,sameSite: true });
+        cardMessage ='Please Login To Your Account';
+        let status = 2;
+        //let cardMessage ='fail';
+        resdata = { 'status': status, 'msg': cardMessage,'shippingCharge':shippingCharge,'grandTotal':grandTotal};
+       res.json(resdata);
+    }
+
+})
+
+app.post('/updateProductQuantityToCard', async(req,res)=>{
+    let cardMessage='';
+    let status = 0;
+    let productId = req.query.productId; 
+    let id = req.query.id; 
+    let Quantity = req.query.Quantity; 
+    if(productId){
+        if(req.session.islogin){
+            let userId= req.session.clientId;            
+            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId,userId);
+            console.log(ProductIsAvaliableInCard)
+            if(ProductIsAvaliableInCard){
+            let sqlQuery = `update cart set quantity= ${Quantity} where product_id = ${productId} and user_id='${userId}'`;
+                connection.query(sqlQuery, (err,result)=>{
+                     if(err){
+                        console.log(err.message);
+                     }else{
+                        cardMessage='Quantity updated';
+                        status = 1;
+                        resdata = { 'status': status, 'msg': cardMessage };
+                         res.json(resdata);
+                     }
+                }) 
+            }else{
+                cardMessage='Product not Avalliable in card';
                 status = 0;
                 resdata = { 'status': status, 'msg': cardMessage };
                 res.json(resdata);
@@ -493,7 +600,7 @@ app.get('/dashboard', LoginMiddleware, async(req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy();
     console.log(`logout`);
-    res.redirect('/');
+    res.redirect('/login#loginTab');
 }); 
 
 

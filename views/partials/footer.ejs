@@ -88,16 +88,58 @@
 
 <script> 
     
-    function updateQuantity(id){
+    function updateQuantity(id,Quantity,cardItemId){
     setTimeout(() => {
-       let Quantity=  $('#item'+id).val();
+       //let Quantity=  $('#item'+id).val();
        let price=  $('#price'+id).val();
        console.log(Quantity);       
        let total = parseInt(Quantity*price);
        console.log(total);
+       updateQuantityToDB(id,Quantity,cardItemId);
        $('#itemTotal'+id).html(total);             
-        }, 2);             
+        }, 3);             
     }
+
+    function updateQuantityToDB(productId,Quantity,id) {
+        console.log(productId);        
+        $.ajax({
+        url: "updateProductQuantityToCard?productId="+productId+"&id="+id+"&Quantity="+Quantity,
+        type: "post",  
+        success: function (response) {
+            console.log(response);
+            //alert(response.msg); 
+            getCardTotal();                      
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+        });
+    }
+
+    function getCardTotal() {
+        $.ajax({
+        url: "getCardTotal",
+        type: "post",  
+        success: function (response) {
+            console.log(response);
+            //alert(response.msg); 
+            if(response.status==1){
+                let subtotal = response.cardTotal;
+                let grandTotal = response.grandTotal;
+                let shippingCharge = response.shippingCharge;
+                $('#subtotal').html(subtotal);
+                $('#shippingCharge').html(shippingCharge);
+                $('#grandTotal').html(grandTotal);
+            }                      
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+        });
+    }
+
+    
+
 
     function addToCard (productId) {
         console.log(productId);        
@@ -123,7 +165,8 @@
             type: "post",  
             success: function (response) {
                 console.log(response);
-                alert(response.msg);  
+                getCardTotal();   
+                alert(response.msg); 
                 $('#productRow'+productId).remove();                   
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -131,6 +174,15 @@
             }
             });
        }
+    }
+
+    function checkCouponCode(){
+           let CouponCode = $('#CouponCode').val();
+           if(CouponCode==''){
+            alert('Please Enter Coupon Code');
+           }else{
+            alert('Invalid Coupon Code');
+           }
     }
     </script>
 
