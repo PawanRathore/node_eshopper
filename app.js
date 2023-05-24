@@ -13,19 +13,19 @@ var { loginMenu } = require('./loginMenuMiddleware');
 //var { isadminlogin } = require('./isadminLoginMiddleware');
 
 const { connection } = require('./db/db_connetion');
-const { checkemailExits, productDetails, checkProductIsAvaliableInCard } = require('./commonfunction');
-const {find_data } = require('./Sqlfunctions'); 
+const { checkemailExits, productDetails, checkProductIsAvaliableInCard, clientDetails, States, getClientCardDetails } = require('./commonfunction');
+const { find_data } = require('./Sqlfunctions');
 const { transporterMail } = require('./mailConfig');
 const bodyParser = require("body-parser");
-const {adminRouter,adminRouterwithLogin} = require('./adminRouter');
-const router = express.Router() ;
-router.use(loginMenu);   
-const LoginMiddleware= [islogin]; 
+const { adminRouter, adminRouterwithLogin } = require('./adminRouter');
+const router = express.Router();
+router.use(loginMenu);
+const LoginMiddleware = [islogin];
 
 const PORT = 3001;
 
 //app.use(express.bodyParser());
-app.use(express.static(__dirname + '/public')); 
+app.use(express.static(__dirname + '/public'));
 //app.use(express.static('/uploads')); 
 app.use('/uploads', express.static('uploads'));
 
@@ -43,9 +43,9 @@ app.use(session({
 // Configurations for "body-parser"
 app.use(
     bodyParser.urlencoded({
-      extended: true,
+        extended: true,
     })
-  ); 
+);
 
 
 
@@ -60,22 +60,22 @@ router.get('/', (req, res) => {
         let products = [];
         result.forEach(element => {
             console.log(element.id);
-            let { id = '', name = '', price = '', discount_price = '', description = '', color = '', size = '', category = '',product_image='' } = element;
-            let obj = { 'id': id, 'name': name, 'price': price, 'discount_price': discount_price, 'description': description, 'color': color, 'size': size, 'category': category,'productImage':product_image}
+            let { id = '', name = '', price = '', discount_price = '', description = '', color = '', size = '', category = '', product_image = '' } = element;
+            let obj = { 'id': id, 'name': name, 'price': price, 'discount_price': discount_price, 'description': description, 'color': color, 'size': size, 'category': category, 'productImage': product_image }
             products.push(obj);
         });
         console.log(JSON.stringify(products));
         res.render('index', { 'products': products });
     })
 
-}) 
+})
 
 // router.get('/',(req, res)=>{
 //     console.log(`root router`);  
 //     res.render('index');
 // })
 
-router.get('/shop', (req, res) => { 
+router.get('/shop', (req, res) => {
     console.log(`shop router`);
     res.render('shop');
 })
@@ -83,13 +83,13 @@ router.get('/shop', (req, res) => {
 router.get('/detail', async (req, res) => {
     console.log(`detail router`);
     //let productsDetails = {};
-    if(req.query.id){
-        let productsDetail = await productDetails(req.query.id);        
+    if (req.query.id) {
+        let productsDetail = await productDetails(req.query.id);
         console.log(JSON.stringify(productsDetail));
-        res.render('detail',productsDetail);        
-    } else{
+        res.render('detail', productsDetail);
+    } else {
         res.redirect('/');
-    }     
+    }
 })
 
 
@@ -135,22 +135,22 @@ router.get('/detail', async (req, res) => {
 //             });
 //                     console.log( JSON.stringify(cardItemArray));   
 //                     //res.render('cart',{'cardItems':cardItemArray});  
-                    
+
 //                     //console.log( JSON.stringify(cardItemData));   
 //                     //res.render('cart',{'cardItems':cardItemData});
-                    
+
 //                      //console.log('123');  
 //                     // console.log( JSON.stringify(cardItemData));   
 //                     // res.render('cart',{'cardItems':cardItemData});  
 
 //             } 
-            
+
 //         }
 //     })
-    
+
 // }) 
 
-router.get('/cart', LoginMiddleware, async(req, res) => {
+router.get('/cart', LoginMiddleware, async (req, res) => {
     console.log(`cart router`);
     let clientId = req.session.clientId;
     //let clientId = 38;
@@ -158,52 +158,136 @@ router.get('/cart', LoginMiddleware, async(req, res) => {
     let sqlQuery = `select * from cart where user_id=${clientId}`;
     let cartData = await find_data(sqlQuery);
     console.log(sqlQuery);
-    let cardItem ={}; 
-    let cardItemArray =[];
+    let cardItem = {};
+    let cardItemArray = [];
     //let cardItemData = [];
 
-            // if(cartData.length) {                     
-            //     cartData.forEach((element)=>{
-            //         console.log(element.product_id);
-            //             let {product_id	=''} = element;
-            //             console.log(`product_id ${product_id}`);  
-                        
-            //             let sqlQuery = `select * from products where id='${product_id}'`   
-            //             const productsResult = await find_data(sqlQuery);
-            //             console.log(`product Data ${productsResult[0].id}`); 
-                        
-            //     });
-            // }
+    // if(cartData.length) {                     
+    //     cartData.forEach((element)=>{
+    //         console.log(element.product_id);
+    //             let {product_id	=''} = element;
+    //             console.log(`product_id ${product_id}`);  
 
-            for(let element in cartData) {
-                console.log(cartData[element].product_id);
-                let product_id = cartData[element].product_id;
-                let quantity = cartData[element].quantity;
-                let cardItemId = cartData[element].id;
-                
-                if(product_id){
+    //             let sqlQuery = `select * from products where id='${product_id}'`   
+    //             const productsResult = await find_data(sqlQuery);
+    //             console.log(`product Data ${productsResult[0].id}`); 
 
-                //let productsSqlQuery = `select * from products where id='${product_id}'`;
-                //const productsResult = await find_data(productsSqlQuery);                
-                //let {id='',name='',price='',product_image='',discount_price=''} = productsResult[0];
-                //console.log(productsResult[0].discount_price);
-                
-                let productsResult =  await productDetails(product_id);
-                console.log(productsResult);                
-                let {id='',name='',price='',product_image='',discount_price=''} = productsResult;
-                cardItem =  {'productName':name,'productPrice':price,'productImage':product_image,'producId':id,'discountPrice':discount_price,'quantity':quantity,'cardItemId':cardItemId};
-                console.log((cardItem));
-                cardItemArray.push(cardItem);
-                }
-            }
-            res.render('cart',{'cardItems':cardItemArray});   
-    
-}) 
+    //     });
+    // }
 
-router.get('/checkout', (req, res) => {
-    console.log(`checkout router`);   
-    res.render('checkout');
+    for (let element in cartData) {
+        console.log(cartData[element].product_id);
+        let product_id = cartData[element].product_id;
+        let quantity = cartData[element].quantity;
+        let cardItemId = cartData[element].id;
+
+        if (product_id) {
+
+            //let productsSqlQuery = `select * from products where id='${product_id}'`;
+            //const productsResult = await find_data(productsSqlQuery);                
+            //let {id='',name='',price='',product_image='',discount_price=''} = productsResult[0];
+            //console.log(productsResult[0].discount_price);
+
+            let productsResult = await productDetails(product_id);
+            console.log(productsResult);
+            let { id = '', name = '', price = '', product_image = '', discount_price = '' } = productsResult;
+            cardItem = { 'productName': name, 'productPrice': price, 'productImage': product_image, 'producId': id, 'discountPrice': discount_price, 'quantity': quantity, 'cardItemId': cardItemId };
+            console.log((cardItem));
+            cardItemArray.push(cardItem);
+        }
+    }
+    res.render('cart', { 'cardItems': cardItemArray });
+
 })
+
+router.get('/checkout', LoginMiddleware, async (req, res) => {
+    console.log(`checkout router`);
+    let clientDetailsData = {};
+    if (req.session.clientId) {
+        let clientId = req.session.clientId;
+        clientDetailsData = await clientDetails(clientId);
+
+        //console.log( JSON.stringify(clientDetailsData));
+        //let States = [];
+        let stateObj = await States();
+        let ClientCardDetails = await getClientCardDetails(clientId);
+
+        // console.log(ClientCardDetails.cardTotal);
+        // console.log(ClientCardDetails.grandTotal);
+        // console.log(ClientCardDetails.shipping);
+        // console.log(ClientCardDetails.cardItemArray);        
+
+        res.render('checkout', { 'cardItems': ClientCardDetails.cardItemArray, 'clientData': clientDetailsData, 'States': stateObj, 'cardTotal': ClientCardDetails.cardTotal, 'grandTotal': ClientCardDetails.grandTotal, 'shipping': ClientCardDetails.shipping });
+    }
+
+
+
+})
+
+router.post('/placeOrder', LoginMiddleware, async (req, res) => {    
+    let status = 0;
+    let msg = '';  
+    let { name = '', email = '', mobile = '', address = '', city = '', state = '', pincode = '', grandTotal = '', payment = '' } = req.body;
+    if (name != '' || email != '' || mobile != '' || address != '' || city != '' || state != '' || pincode != '' || grandTotal != '' || payment != '') {
+
+        if (req.session.clientId) {
+            let clientId = req.session.clientId;
+
+            let updateClientData = `update users set name='${name}',address='${address}',state='${state}',city='${city}',pincode='${pincode}' where id=${clientId}`;
+            connection.query(updateClientData, (err, result) => { 
+            })
+
+            let ClientCardDetails = await getClientCardDetails(clientId);
+            console.log('length : ' + ClientCardDetails.cardItemArray.length);
+            if (ClientCardDetails.cardItemArray.length > 0) {
+                let sqlQuery = `insert into orders(name,user_id,email,mobile,address,state,city,pincode,total,payment_type) values ('${name}','${clientId}','${email}','${mobile}','${address}','${state}','${city}','${pincode}','${grandTotal}','${payment}')`;
+
+                await connection.query(sqlQuery, (err, result) => {
+                    if (err) { throw err }
+                    else {
+                        console.log(JSON.stringify(result));
+                        let orderId = result.insertId;
+
+                        const cardItems = ClientCardDetails.cardItemArray;
+                        for (item in cardItems) {
+                            let { productName = '', productPrice = '', producId = '', cardItemId = '', quantity = '' } = cardItems[item];
+                            let sqlQuery = `insert into order_items(product_name,product_price,produc_id,card_item_id,quantity,order_id,user_id) values ('${productName}','${productPrice}','${producId}','${cardItemId}','${quantity}','${orderId}','${clientId}')`;
+                            connection.query(sqlQuery, (err, result) => {
+                                if (err) { throw err } else {
+                                    //console.log(JSON.stringify(result));
+                                    let order_items_insertId = result.insertId;
+                                    console.log(` order_items_insertId ${order_items_insertId}`);
+                                }
+                            });
+                        }
+                        let sqlQuery = `delete from cart where user_id=${clientId}`;
+                        connection.query(sqlQuery, (err, result) => {
+                        })
+
+                    }
+
+
+                })
+                status = 1;
+                msg = 'Order place Successfully';
+                resobj = { 'status': status, 'msg': msg };
+                res.json(resobj);
+            } else {
+                status = 1;
+                msg = 'Card Empty';
+                resobj = { 'status': status, 'msg': msg };
+                res.json(resobj);
+            }
+        }
+    }
+    else {
+        status = 0;
+        msg = 'Invalid details';
+        resobj = { 'status': status, 'msg': msg };
+        res.json(resobj);
+    }
+});
+
 
 router.get('/contact', (req, res) => {
     console.log(`contact router`);
@@ -304,7 +388,7 @@ app.post('/loginpost', (req, res) => {
             console.log(JSON.stringify(result));
             //res.redirect('/loginTest');  
             let baseUrl = process.env.BASE_URL;
-            let pageUrl = "/login"; 
+            let pageUrl = "/login";
             //let cookie = req.cookies; 
             // let cookie= req.cookies.pageRedirect; 
             // console.log('Cookies: ', cookie);             
@@ -315,8 +399,8 @@ app.post('/loginpost', (req, res) => {
             //    let redirectUrl = `${baseUrl}${pageUrl}`;
             //     console.log(`redirectUrl ${redirectUrl}`);
             let redirectUrl = '/dashboard';
-            resdata = { 'status': 1, 'msg': 'login successful','redirectUrl':redirectUrl};
-            res.json(resdata); 
+            resdata = { 'status': 1, 'msg': 'login successful', 'redirectUrl': redirectUrl };
+            res.json(resdata);
             res.end();
         } else {
             //res.redirect('/loginTest');   
@@ -376,232 +460,236 @@ app.post('/registerpost', (req, res) => {
             })
         }
     })
-})  
+})
 
-app.post('/addToCard',  async(req,res)=>{
-    let cardMessage='';
+app.post('/addToCard', async (req, res) => {
+    let cardMessage = '';
     let status = 0;
-    let productId = req.query.productId; 
-    if(productId){
-        if(req.session.islogin){
-            let userId= req.session.clientId;            
-            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId,userId);
+    let productId = req.query.productId;
+    if (productId) {
+        if (req.session.islogin) {
+            let userId = req.session.clientId;
+            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId, userId);
             console.log(ProductIsAvaliableInCard)
-            if(!ProductIsAvaliableInCard){
-            let sqlQuery = `insert into cart(product_id,user_id)values('${productId}','${userId}');`;
-                connection.query(sqlQuery, (err,result)=>{
-                     if(err){
+            if (!ProductIsAvaliableInCard) {
+                let sqlQuery = `insert into cart(product_id,user_id)values('${productId}','${userId}');`;
+                connection.query(sqlQuery, (err, result) => {
+                    if (err) {
                         console.log(err.message);
-                     }else{
-                        cardMessage='Add to card Successfully';
+                    } else {
+                        cardMessage = 'Add to card Successfully';
                         status = 1;
                         resdata = { 'status': status, 'msg': cardMessage };
-                         res.json(resdata);
-                     }
-                }) 
-            }else{
-                cardMessage='Product already Avalliable in card';
+                        res.json(resdata);
+                    }
+                })
+            } else {
+                cardMessage = 'Product already Avalliable in card';
                 status = 0;
                 resdata = { 'status': status, 'msg': cardMessage };
                 res.json(resdata);
-            }       
-        }else{ 
-            let pageUrl = req.originalUrl; 
-            let baseUrl = process.env.BASE_URL;  
+            }
+        } else {
+            let pageUrl = req.originalUrl;
+            let baseUrl = process.env.BASE_URL;
             console.log(`baseUrl : ${baseUrl}`);
             console.log(`pageUrl : ${pageUrl}`);
-            res.cookie('pageRedirect',pageUrl, { maxAge: oneDay,httpOnly:false,sameSite: true });
-            cardMessage ='Please Login To Your Account';
+            res.cookie('pageRedirect', pageUrl, { maxAge: oneDay, httpOnly: false, sameSite: true });
+            cardMessage = 'Please Login To Your Account';
             status = 2;
             resdata = { 'status': status, 'msg': cardMessage };
-           res.json(resdata);
+            res.json(resdata);
         }
-    }else{
-        cardMessage ='Invalid Request';
+    } else {
+        cardMessage = 'Invalid Request';
         resdata = { 'status': status, 'msg': cardMessage };
         res.json(resdata);
     }
-    
+
 
 })
 
-app.post('/getCardTotal', LoginMiddleware, async(req,res)=>{
-    if(req.session.islogin){
+app.post('/getCardTotal', LoginMiddleware, async (req, res) => {
+    if (req.session.islogin) {
         console.log('in getCardTotal ');
-        let userId= req.session.clientId;        
+        let userId = req.session.clientId;
         let sqlQuery = `select * from cart where user_id = '${userId}'`;
         console.log(sqlQuery);
-        let cartData = await find_data(sqlQuery); 
+        let cartData = await find_data(sqlQuery);
         let cardTotal = 0;
         let status = 1;
-        let cardMessage ='Suc';
+        let cardMessage = 'Suc';
         let shippingCharge = process.env.SHIPPING_CHARGE;
-        let grandTotal = 0; 
-        
+        let grandTotal = 0;
 
-        for(let element in cartData) {
-            console.log(element); 
+        let itemCounter = 0;
+        for (let element in cartData) {
+            console.log(element);
             //console.log(cartData[element].product_id);
             let product_id = cartData[element].product_id;
             let quantity = cartData[element].quantity;
             let cardItemId = cartData[element].id;
-            
-            if(product_id){
-            let productsResult =  await productDetails(product_id);
-            //console.log(productsResult);                
-            let {id='',name='',price='',product_image='',discount_price=''} = productsResult;
-            console.log('quantity : '+quantity);
-            console.log('price : '+price);
-            console.log(quantity*price);
-            cardTotal += quantity*price;
-            console.log((cardTotal));
-            //cardItemArray.push(cardItem);
+
+            if (product_id) {
+                let productsResult = await productDetails(product_id);
+                //console.log(productsResult);                
+                let { id = '', name = '', price = '', product_image = '', discount_price = '' } = productsResult;
+                console.log('quantity : ' + quantity);
+                console.log('price : ' + price);
+                console.log(quantity * price);
+                cardTotal += quantity * price;
+                console.log((cardTotal));
+                itemCounter++;
+                //cardItemArray.push(cardItem);
             }
         }
-        grandTotal = parseInt(cardTotal)+parseInt(shippingCharge);
+
+        shippingCharge = (cardTotal>1000) ?  shippingCharge : 0;
+
+        grandTotal = parseInt(cardTotal) + parseInt(shippingCharge);
 
         console.log(`cardTotal: ${cardTotal}`);
-        resdata = { 'status': status, 'msg': cardMessage ,'cardTotal':cardTotal,'shippingCharge':shippingCharge,'grandTotal':grandTotal};
+        resdata = { 'status': status, 'msg': cardMessage, 'cardTotal': cardTotal, 'shippingCharge': shippingCharge, 'grandTotal': grandTotal,'itemCount':itemCounter };
         res.json(resdata);
-    }else{ 
-        let pageUrl = req.originalUrl; 
-        let baseUrl = process.env.BASE_URL;  
+    } else {
+        let pageUrl = req.originalUrl;
+        let baseUrl = process.env.BASE_URL;
         console.log(`baseUrl : ${baseUrl}`);
         console.log(`pageUrl : ${pageUrl}`);
-        res.cookie('pageRedirect',pageUrl, { maxAge: oneDay,httpOnly:false,sameSite: true });
-        cardMessage ='Please Login To Your Account';
+        res.cookie('pageRedirect', pageUrl, { maxAge: oneDay, httpOnly: false, sameSite: true });
+        cardMessage = 'Please Login To Your Account';
         let status = 2;
         //let cardMessage ='fail';
-        resdata = { 'status': status, 'msg': cardMessage,'shippingCharge':shippingCharge,'grandTotal':grandTotal};
-       res.json(resdata);
-    }
-
-})
-
-app.post('/updateProductQuantityToCard', async(req,res)=>{
-    let cardMessage='';
-    let status = 0;
-    let productId = req.query.productId; 
-    let id = req.query.id; 
-    let Quantity = req.query.Quantity; 
-    if(productId){
-        if(req.session.islogin){
-            let userId= req.session.clientId;            
-            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId,userId);
-            console.log(ProductIsAvaliableInCard)
-            if(ProductIsAvaliableInCard){
-            let sqlQuery = `update cart set quantity= ${Quantity} where product_id = ${productId} and user_id='${userId}'`;
-                connection.query(sqlQuery, (err,result)=>{
-                     if(err){
-                        console.log(err.message);
-                     }else{
-                        cardMessage='Quantity updated';
-                        status = 1;
-                        resdata = { 'status': status, 'msg': cardMessage };
-                         res.json(resdata);
-                     }
-                }) 
-            }else{
-                cardMessage='Product not Avalliable in card';
-                status = 0;
-                resdata = { 'status': status, 'msg': cardMessage };
-                res.json(resdata);
-            }       
-        }else{ 
-            let pageUrl = req.originalUrl; 
-            let baseUrl = process.env.BASE_URL;  
-            console.log(`baseUrl : ${baseUrl}`);
-            console.log(`pageUrl : ${pageUrl}`);
-            res.cookie('pageRedirect',pageUrl, { maxAge: oneDay,httpOnly:false,sameSite: true });
-            cardMessage ='Please Login To Your Account';
-            status = 2;
-            resdata = { 'status': status, 'msg': cardMessage };
-           res.json(resdata);
-        }
-    }else{
-        cardMessage ='Invalid Request';
-        resdata = { 'status': status, 'msg': cardMessage };
+        resdata = { 'status': status, 'msg': cardMessage, 'shippingCharge': shippingCharge, 'grandTotal': grandTotal };
         res.json(resdata);
     }
-    
 
 })
 
-app.post('/removeItemFromCard', async(req,res)=>{
-    let cardMessage='';
+app.post('/updateProductQuantityToCard', async (req, res) => {
+    let cardMessage = '';
     let status = 0;
-    let productId = req.query.productId; 
-    if(productId){
-        if(req.session.islogin){ 
-            let userId= req.session.clientId;            
-            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId,userId);
+    let productId = req.query.productId;
+    let id = req.query.id;
+    let Quantity = req.query.Quantity;
+    if (productId) {
+        if (req.session.islogin) {
+            let userId = req.session.clientId;
+            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId, userId);
             console.log(ProductIsAvaliableInCard)
-            if(ProductIsAvaliableInCard){
-            let sqlQuery = `delete from cart where product_id= ${productId} and user_id=${userId}`;
-                connection.query(sqlQuery, (err,result)=>{
-                     if(err){
+            if (ProductIsAvaliableInCard) {
+                let sqlQuery = `update cart set quantity= ${Quantity} where product_id = ${productId} and user_id='${userId}'`;
+                connection.query(sqlQuery, (err, result) => {
+                    if (err) {
                         console.log(err.message);
-                     }else{
-                        cardMessage='Remove item from card';
+                    } else {
+                        cardMessage = 'Quantity updated';
                         status = 1;
                         resdata = { 'status': status, 'msg': cardMessage };
                         res.json(resdata);
-                     } 
-                }) 
-            }else{
-                cardMessage='Product Not Avalliable in card';
+                    }
+                })
+            } else {
+                cardMessage = 'Product not Avalliable in card';
                 status = 0;
                 resdata = { 'status': status, 'msg': cardMessage };
                 res.json(resdata);
-            }       
-        }else{ 
-            let pageUrl = req.originalUrl; 
-            let baseUrl = process.env.BASE_URL;  
+            }
+        } else {
+            let pageUrl = req.originalUrl;
+            let baseUrl = process.env.BASE_URL;
             console.log(`baseUrl : ${baseUrl}`);
             console.log(`pageUrl : ${pageUrl}`);
-            res.cookie('pageRedirect',pageUrl, { maxAge: oneDay,httpOnly:false,sameSite: true });
-            cardMessage ='Please Login To Your Account';
+            res.cookie('pageRedirect', pageUrl, { maxAge: oneDay, httpOnly: false, sameSite: true });
+            cardMessage = 'Please Login To Your Account';
             status = 2;
             resdata = { 'status': status, 'msg': cardMessage };
-           res.json(resdata);
+            res.json(resdata);
         }
-    }else{
-        cardMessage ='Invalid Request';
+    } else {
+        cardMessage = 'Invalid Request';
         resdata = { 'status': status, 'msg': cardMessage };
         res.json(resdata);
     }
-    
+
 
 })
 
-app.get('/dashboard', LoginMiddleware, async(req, res) => {
-    console.log(`dashboard`);    
-        let cookie = req.cookies.pageRedirect;                   
-        if (cookie !== undefined) { 
-            let userId= req.session.clientId;  
-            var cookieArray = cookie.split("/addToCard?productId="); 
-            let productId = cookieArray[1];         
-            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId,userId);
+app.post('/removeItemFromCard', async (req, res) => {
+    let cardMessage = '';
+    let status = 0;
+    let productId = req.query.productId;
+    if (productId) {
+        if (req.session.islogin) {
+            let userId = req.session.clientId;
+            let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId, userId);
             console.log(ProductIsAvaliableInCard)
-            if(!ProductIsAvaliableInCard){
-            let sqlQuery = `insert into cart(product_id,user_id)values('${productId}','${userId}');`;
-                console.log('sqlQuery : '+sqlQuery);
-                connection.query(sqlQuery, (err,result)=>{
-                     if(err){
+            if (ProductIsAvaliableInCard) {
+                let sqlQuery = `delete from cart where product_id= ${productId} and user_id=${userId}`;
+                connection.query(sqlQuery, (err, result) => {
+                    if (err) {
                         console.log(err.message);
-                     }
+                    } else {
+                        cardMessage = 'Remove item from card';
+                        status = 1;
+                        resdata = { 'status': status, 'msg': cardMessage };
+                        res.json(resdata);
+                    }
                 })
-            }  
-            res.clearCookie("pageRedirect");                  
+            } else {
+                cardMessage = 'Product Not Avalliable in card';
+                status = 0;
+                resdata = { 'status': status, 'msg': cardMessage };
+                res.json(resdata);
+            }
+        } else {
+            let pageUrl = req.originalUrl;
+            let baseUrl = process.env.BASE_URL;
+            console.log(`baseUrl : ${baseUrl}`);
+            console.log(`pageUrl : ${pageUrl}`);
+            res.cookie('pageRedirect', pageUrl, { maxAge: oneDay, httpOnly: false, sameSite: true });
+            cardMessage = 'Please Login To Your Account';
+            status = 2;
+            resdata = { 'status': status, 'msg': cardMessage };
+            res.json(resdata);
         }
-        res.render('dashboard');
+    } else {
+        cardMessage = 'Invalid Request';
+        resdata = { 'status': status, 'msg': cardMessage };
+        res.json(resdata);
+    }
+
+
+})
+
+app.get('/dashboard', LoginMiddleware, async (req, res) => {
+    console.log(`dashboard`);
+    let cookie = req.cookies.pageRedirect;
+    if (cookie !== undefined) {
+        let userId = req.session.clientId;
+        var cookieArray = cookie.split("/addToCard?productId=");
+        let productId = cookieArray[1];
+        let ProductIsAvaliableInCard = await checkProductIsAvaliableInCard(productId, userId);
+        console.log(ProductIsAvaliableInCard)
+        if (!ProductIsAvaliableInCard) {
+            let sqlQuery = `insert into cart(product_id,user_id)values('${productId}','${userId}');`;
+            console.log('sqlQuery : ' + sqlQuery);
+            connection.query(sqlQuery, (err, result) => {
+                if (err) {
+                    console.log(err.message);
+                }
+            })
+        }
+        res.clearCookie("pageRedirect");
+    }
+    res.render('dashboard');
 })
 
 app.get('/logout', (req, res) => {
     req.session.destroy();
     console.log(`logout`);
     res.redirect('/login#loginTab');
-}); 
+});
 
 
 // app.get('/admin',(req,res)=>{
@@ -654,8 +742,8 @@ app.get('/logout', (req, res) => {
 //     res.render('add_product');
 // })  
 
-app.use(adminRouterwithLogin); 
-app.use(adminRouter); 
+app.use(adminRouterwithLogin);
+app.use(adminRouter);
 app.use(router);
 
 app.listen(PORT, (error) => {

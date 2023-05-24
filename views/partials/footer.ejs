@@ -127,9 +127,11 @@
                 let subtotal = response.cardTotal;
                 let grandTotal = response.grandTotal;
                 let shippingCharge = response.shippingCharge;
+                let cardItemCount = response.itemCount;
                 $('#subtotal').html(subtotal);
                 $('#shippingCharge').html(shippingCharge);
                 $('#grandTotal').html(grandTotal);
+                $('#cardItemCount').html(cardItemCount);
             }                      
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -187,8 +189,92 @@
     </script>
 
 <script>
+    function placeOrder(){
+       event.preventDefault(); // cancel default behavior
+       let name = $('#name').val();
+       let email = $('#email').val();
+       let mobile = $('#mobile').val();
+       let address = $('#address').val();
+       let city = $('#city').val();
+       let state = $('#state').val();
+       let pincode = $('#pincode').val();
+       let grandTotal = $('#grandTotal').val();
+       let payment = $('input[name="payment"]:checked').val();
+       
+
+     if(!name){
+         alert('Please Enter Your Name');
+         return false;
+     }
+     if(!email){
+         alert('Please Enter Your email');
+         return false;
+     }
+     if(!mobile){
+         alert('Please Enter Your mobile');
+         return false;
+     }
+     if(!address){
+         alert('Please Enter Your address');
+         return false;
+     }
+     if(!city){
+         alert('Please Enter Your city');
+         return false;
+     }
+     if(!state){
+         alert('Please Enter Your state');
+         return false;
+     }
+     if(!pincode){
+         alert('Please Enter Your pincode');
+         return false;
+     }
+
+     if(grandTotal=='' || grandTotal==0 || grandTotal=='0'){
+         alert('Amount is 0 cant process further.');
+         return false;
+     }
+
+     if(!payment){
+         alert('Please Select Payment Type');
+         return false;
+     }
+
+     var paymentFormData = $("#paymentForm").serialize();
+     console.log('paymentFormData'+paymentFormData);
+     //return false;
+
+     let confirmStatus = confirm("You will be Redirect to Payment page do not Refresh or Back button");
+     if(confirmStatus){
+         $.ajax({
+         url: "placeOrder",
+         data:paymentFormData,
+         type: "post",   
+         success: function (response) {
+             console.log(response); 
+             let status = response.status;                                  
+             let msg = response.msg; 
+             alert(msg);                                  
+         },
+         error: function(jqXHR, textStatus, errorThrown) {
+         console.log(textStatus, errorThrown);
+         }
+         });
+    }
+    }     
+
+    function redirect(url){
+   window.open(url,'_self');
+    }
+ </script>
+
+<script>
     //let table = new DataTable('#myTable');
     let table = new DataTable('#myTable', {
         // config options...
     });    
 </script>
+
+<!-- userfull site -->
+<!-- https://futurestud.io/tutorials/iterate-through-an-objects-keys-and-values-in-javascript-or-node-js -->

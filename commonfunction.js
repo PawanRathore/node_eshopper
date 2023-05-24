@@ -1,5 +1,7 @@
 const { promises } = require('nodemailer/lib/xoauth2');
 const { connection } = require('./db/db_connetion');
+const {find_data} = require('./Sqlfunctions');
+require('dotenv').config();
 
 const checkemailExits = async (email, table = 'users') => {
     //let email = req.email;
@@ -142,6 +144,86 @@ const productDetails = async (productId)=>{
   return productsDetailArray;
 } 
 
+const clientDetails = async(clientId,removePassword='1')=>{
+    if(clientId) {
+        let sql = `select *  from users where id = '${clientId}'`;        
+        let clientDetails = await find_data(sql);
+        if(clientDetails.length>0){
+            clientDetailsData = clientDetails[0];
+            //clientDetailsData.push(obj);
+            if(removePassword){
+            delete clientDetailsData['password'];
+            }
+        }else{
+            let clientDetailsData = {};
+        }
+    }
+    return clientDetailsData;
+}
+
+const States = async()=>{
+let stateObj = {"AP":"Andhra Pradesh","AR":"Arunachal Pradesh","AS":"Assam","BR":"Bihar","CT":"Chhattisgarh","GA":"Goa","GJ":"Gujarat","HR":"Haryana","HP":"Himachal Pradesh","JK":"Jammu and Kashmir","JH":"Jharkhand","KA":"Karnataka","KL":"Kerala","MP":"Madhya Pradesh","MH":"Maharashtra","MN":"Manipur","ML":"Meghalaya","MZ":"Mizoram","NL":"Nagaland","OR":"Odisha","PB":"Punjab","RJ":"Rajasthan","SK":"Sikkim","TN":"Tamil Nadu","TG":"Telangana","TR":"Tripura","UP":"Uttar Pradesh","UT":"Uttarakhand","WB":"West Bengal","AN":"Andaman and Nicobar Islands","CH":"Chandigarh","DN":"Dadra and Nagar Haveli","DD":"Daman and Diu","LD":"Lakshadweep","DL":"National Capital Territory of Delhi","PY":"Puducherry"}
+return stateObj; 
+}
+
+const getClientCardDetails = async(clientId)=>{
+    console.log(`clientId : ${clientId}`);
+    let sqlQuery = `select * from cart where user_id=${clientId}`;
+    let cartData = await find_data(sqlQuery);
+    console.log(sqlQuery);
+    let cardItem ={}; 
+    let cardItemArray =[];
+    let cardTotal = 0;
+    let shippingCharge = process.env.SHIPPING_CHARGE;
+    let grandTotal = 0; 
+    //let cardItemData = [];
+
+            // if(cartData.length) {                     
+            //     cartData.forEach((element)=>{
+            //         console.log(element.product_id);
+            //             let {product_id	=''} = element;
+            //             console.log(`product_id ${product_id}`);  
+                        
+            //             let sqlQuery = `select * from products where id='${product_id}'`   
+            //             const productsResult = await find_data(sqlQuery);
+            //             console.log(`product Data ${productsResult[0].id}`); 
+                        
+            //     });
+            // }
+
+            let itemCounter = 0;
+            for(let element in cartData) {
+                console.log(cartData[element].product_id);
+                let product_id = cartData[element].product_id;
+                let quantity = cartData[element].quantity;
+                let cardItemId = cartData[element].id;
+                
+                if(product_id){
+
+                //let productsSqlQuery = `select * from products where id='${product_id}'`;
+                //const productsResult = await find_data(productsSqlQuery);                
+                //let {id='',name='',price='',product_image='',discount_price=''} = productsResult[0];
+                //console.log(productsResult[0].discount_price);
+                
+                let productsResult =  await productDetails(product_id);
+                //console.log(productsResult);                
+                let {id='',name='',price='',product_image='',discount_price=''} = productsResult;
+                cardItem =  {'productName':name,'productPrice':price,'productImage':product_image,'producId':id,'discountPrice':discount_price,'quantity':quantity,'cardItemId':cardItemId};
+                //console.log((cardItem));
+                cardItemArray.push(cardItem);
+                cardTotal += quantity*price;
+                itemCounter++;
+                }
+            }
+
+            shippingCharge = (cardTotal>1000) ?  shippingCharge : 0;
+
+            grandTotal = parseInt(cardTotal)+parseInt(shippingCharge);
+
+            let cardData = {'cardTotal':cardTotal,'grandTotal':grandTotal,'shipping':shippingCharge,'cardItemArray':cardItemArray,'itemCount':itemCounter};
+            return cardData;
+}
+
 
 const checkProductIsAvaliableInCard = async(productId,userId)=>{
         let isProductIsAvaliableInCard = await new Promise((resolve, reject)=>{
@@ -163,5 +245,5 @@ const checkProductIsAvaliableInCard = async(productId,userId)=>{
     return isProductIsAvaliableInCard;
 }
 
-module.exports = { checkemailExits, getProducts , categories , categoriesMapping , productDetails, checkProductIsAvaliableInCard};
+module.exports = { checkemailExits, getProducts , categories , categoriesMapping , productDetails, checkProductIsAvaliableInCard , clientDetails,States,getClientCardDetails};
 
