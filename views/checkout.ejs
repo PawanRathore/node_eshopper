@@ -7,6 +7,7 @@
     <%- include('./partials/header'); -%>
     <%- include('./partials/menu'); -%>
     
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 
    <!-- Page Header Start -->
@@ -26,7 +27,7 @@
 <!-- Checkout Start -->
 <div class="container-fluid pt-5">
     <div class="row px-xl-5">
-        <form method="post" id="paymentForm" name="paymentForm" style="display: inline-flex;">
+         <form method="post" id="paymentForm" name="paymentForm" style="display: inline-flex;"> -->
             <div class="col-lg-8">
                 <div class="mb-4">
                     <h4 class="font-weight-semi-bold mb-4">Billing Address</h4>
@@ -201,7 +202,8 @@
                     <div class="card-header bg-secondary border-0">
                         <h4 class="font-weight-semi-bold m-0">Payment</h4>
                     </div>
-                    <div class="card-body">
+
+                    <!-- <div class="card-body">
                         <div class="form-group">
                             <div class="custom-control custom-radio">
                                 <input type="radio" class="custom-control-input" name="payment" value="paypal" id="paypal">
@@ -220,19 +222,349 @@
                                 <label class="custom-control-label" for="banktransfer">Bank Transfer</label>
                             </div>
                         </div>
-                    </div>
-                    <div class="card-footer border-secondary bg-transparent">
-                        <button class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3" type="submit" onclick="return placeOrder();">Place Order</button>
+                    </div> -->
+
+                    <div class="card-footer border-secondary bg-transparent">                       
+
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="termCondition" name="termCondition">
+                            <label class="custom-control-label" for="termCondition">Term and Condition</label>                           
+                        </div>
+
+                        <!-- <button class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3" type="submit" onclick="return placeOrder();">Place Order</button> -->
+                        <!-- <button class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3" type="submit" id="pay-button" name="pay-button">Place Order</button> -->
+
+                        <button class="btn btn-lg btn-block btn-primary font-weight-bold my-3 py-3" type="submit" id="pay-button" onclick="Pay()" >
+                            Place Order
+                        </button> 
+                        
                     </div>
                 </div>
             </div>
-        </form>
+         </form>
     </div>
 </div>
 <!-- Checkout End -->
 
 
     <%- include('./partials/footer'); -%>
+
+<script>
+    let orderId ='';
+    let Totalamount = 0;
+    let amount = $('#grandTotal').val();    
+    
+    function GenrateOrderId(productId) {
+    $.ajax({
+    url: "razorpay/create/orderId",
+    type: "post",    
+    data: {
+        amount: amount,    
+    },
+    //contentType: "application/json",
+    success: function (response) {
+    console.log('orderId : '+response.orderId); 
+    orderId = response.orderId                                                
+    amount = response.amount    
+    console.log('Totalamount : '+amount);                                             
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+    console.log(textStatus, errorThrown);
+    }
+    });       
+    }
+
+    GenrateOrderId();
+</script>
+
+<script>    
+        // var options = {
+        //     "key": "rzp_test_uR05WckzzLFDuY", 
+        //     "amount":amount, 
+        //     "currency": "INR",
+        //     "name": "E-Shopper",
+        //     "description": "",
+        //     "image": "",
+        //     "order_id": orderId,  
+        //     "handler": function (response){
+        //     console.log(response)
+        //     console.log("razorpay_payment_id ::"+response.razorpay_payment_id);
+        //     alert("This step of Payment Succeeded");
+        //     },                
+        //     "theme": {
+        //     "color": "#2300a3"
+        //     }
+        // };
+        // console.log('P amount :'+amount);
+        // var razorpayObject = new Razorpay(options);
+        // console.log(razorpayObject);
+        // //console.log("razorpay_payment_id :"+razorpayObject.razorpay_payment_id);
+        // razorpayObject.on('payment.failed', function (response){
+        // console.log(response);
+        // console.log("razorpay_payment_id"+response.razorpay_payment_id);
+
+        // alert("This step of Payment Failed");
+        // }); 
+    
+    // document.getElementById('pay-button').onclick = function(e){
+    // razorpayObject.open(); 
+    // e.preventDefault();
+    // }
+
+
+    function Pay(){
+       event.preventDefault(); // cancel default behavior
+       let name = $('#name').val();
+       let email = $('#email').val();
+       let mobile = $('#mobile').val();
+       let address = $('#address').val();
+       let city = $('#city').val();
+       let state = $('#state').val();
+       let pincode = $('#pincode').val();
+       let grandTotal = $('#grandTotal').val();
+       let chechPayemtDetailsStatuss = 0;
+       //let payment = $('input[name="payment"]:checked').val();
+       //let payment = $('input[name="payment"]:checked').val();
+       
+
+     if(!name){
+         alert('Please Enter Your Name');
+         return false;
+     }
+     if(!email){
+         alert('Please Enter Your email');
+         return false;
+     }
+     if(!mobile){
+         alert('Please Enter Your mobile');
+         return false;
+     }
+     if(!address){
+         alert('Please Enter Your address');
+         return false;
+     }
+     if(!city){
+         alert('Please Enter Your city');
+         return false;
+     }
+     if(!state){
+         alert('Please Enter Your state');
+         return false;
+     }
+     if(!pincode){
+         alert('Please Enter Your pincode');
+         return false;
+     }
+
+     if(grandTotal=='' || grandTotal==0 || grandTotal=='0'){
+         alert('Amount is 0 cant process further.');
+         return false;
+     }
+
+    //  if(!payment){
+    //      alert('Please Select Payment Type');
+    //      return false;
+    //  }
+
+    if ($('#termCondition').is(':checked')) {        
+    }else{
+        alert('Please accept Term and condition');
+        return false;
+    }
+
+     //var paymentFormData = $("#paymentForm").serialize();
+     //console.log('paymentFormData'+paymentFormData);
+     //return false;
+
+     let chechPayemtDetailsStatus = checkPayemtDetails();
+     
+    //  console.log('chechPayemtDetailsStatus'+chechPayemtDetailsStatus);
+
+    //  if(chechPayemtDetailsStatus==1) {
+    //  let confirmStatus = confirm("You will be Redirect to Payment page do not Refresh or Back button");
+    //         if(confirmStatus) {
+    //             var options = {
+    //                 "key": "rzp_test_uR05WckzzLFDuY", 
+    //                 "amount":amount, 
+    //                 "currency": "INR",
+    //                 "name": "E-Shopper",
+    //                 "description": "",
+    //                 "image": "",
+    //                 "order_id": orderId,  
+    //                 //"callback_url": "http://localhost:3001/paymentStatus",
+    //                // "callback_method": "get",
+    //                 "handler": function (response){
+    //                 console.log(response)
+    //                 console.log("razorpay_payment_id ::"+response.razorpay_payment_id);
+    //                 console.log("razorpay_order_id ::"+response.razorpay_order_id);
+    //                 console.log("razorpay_signature ::"+response.razorpay_signature);
+    //                 alert("This step of Payment Succeeded");
+    //                 },                
+    //                 "theme": {
+    //                 "color": "#2300a3"
+    //                 }
+    //             };
+                
+    //             console.log('P amount :'+amount);
+    //             var razorpayObject = new Razorpay(options);
+    //             console.log(razorpayObject);
+    //             //console.log("razorpay_payment_id :"+razorpayObject.razorpay_payment_id);
+    //             razorpayObject.on('payment.failed', function (response){
+    //             console.log(response);
+    //             console.log("razorpay_payment_id"+response.razorpay_payment_id);
+
+    //             alert("This step of Payment Failed");
+    //             });    
+    //             razorpayObject.open(); 
+    //             e.preventDefault();
+
+    //             //  $.ajax({
+    //             //  url: "placeOrder",
+    //             //  data:paymentFormData,
+    //             //  type: "post",   
+    //             //  success: function (response) {
+    //             //      console.log(response); 
+    //             //      let status = response.status;                                  
+    //             //      let msg = response.msg; 
+    //             //      alert(msg);                                  
+    //             //  },
+    //             //  error: function(jqXHR, textStatus, errorThrown) {
+    //             //  console.log(textStatus, errorThrown);
+    //             //  }
+    //             //  });
+    //         }
+     
+    //   }else{
+    //     alert('Invalid Details');
+    //   }
+    } 
+
+    
+    function checkPayemtDetails(){
+        console.log('checkPayemtDetails');
+       // e.preventDefault();
+        let paymentFormData = $("#paymentForm").serialize();       
+         $.ajax({
+         url: "checkPayemtDetails",
+         data:paymentFormData,
+         type: "post",   
+         success: function (response) {
+             console.log(response); 
+             if(response.status==1) {
+                chechPayemtDetailsStatus = response.status; 
+                console.log('chechPayemtDetailsStatus  : '+chechPayemtDetailsStatus )
+                goToPaymentGatway();  
+             } else {          
+                    alert('Invalid Details');    
+             }
+        },
+         error: function(jqXHR, textStatus, errorThrown) {
+         console.log(textStatus, errorThrown);
+         }
+         });
+    }
+    
+    function goToPaymentGatway() {
+        console.log('goToPaymentGatway');
+        if(chechPayemtDetailsStatus==1) {
+            let confirmStatus = confirm("You will be Redirect to Payment page do not Refresh or Back button");
+            if(confirmStatus) {
+                var options = {
+                    "key": "rzp_test_uR05WckzzLFDuY", 
+                    "amount":amount, 
+                    "currency": "INR",
+                    "name": "E-Shopper",
+                    "description": "",
+                    "image": "",
+                    "order_id": orderId,  
+                    //"callback_url": "http://localhost:3001/paymentStatus",
+                   // "callback_method": "get",
+                    "handler": function (response){
+                    console.log(response);
+                    let paymentId = response.razorpay_payment_id;
+                    console.log("razorpay_payment_id ::"+paymentId);
+                    console.log("razorpay_order_id ::"+response.razorpay_order_id);
+                    console.log("razorpay_signature ::"+response.razorpay_signature);
+                    //alert("This step of Payment Succeeded");
+                    updateDetailsAfterPayment(paymentId);
+                    },                
+                    "theme": {
+                    "color": "#2300a3"
+                    }
+                }; 
+                var razorpayObject = new Razorpay(options);
+                console.log(razorpayObject);
+                //console.log("razorpay_payment_id :"+razorpayObject.razorpay_payment_id);
+                razorpayObject.on('payment.failed', function (response){
+                console.log(response);
+                console.log("razorpay_payment_id"+response.razorpay_payment_id);
+
+                alert("This step of Payment Failed");
+                });    
+                razorpayObject.open(); 
+                e.preventDefault();                
+            }
+        } 
+    }
+    
+    function updateDetailsAfterPayment(paymentId) {
+        console.log('updateDetailsAfterPayment');
+        let paymentFormData = $("#paymentForm").serialize();
+        paymentFormData +="&paymentId="+paymentId;
+         $.ajax({
+                 url: "updateDetailsAfterPayment",
+                 data:paymentFormData,
+                 type: "post",   
+                 success: function (response) {
+                     console.log(response); 
+                     let status = response.status;                                  
+                     let msg = response.msg; 
+                     alert(msg);  
+                     let url ='checkout';
+                     //redirect(url);                                
+                 },
+                 error: function(jqXHR, textStatus, errorThrown) {
+                 console.log(textStatus, errorThrown);
+                 }
+        });
+    }
+
+    function PayOld(){ 
+
+        var options = {
+            "key": "rzp_test_uR05WckzzLFDuY", 
+            "amount":amount, 
+            "currency": "INR",
+            "name": "E-Shopper",
+            "description": "",
+            "image": "",
+            "order_id": orderId,  
+            "handler": function (response){
+            console.log(response)
+            console.log("razorpay_payment_id ::"+response.razorpay_payment_id);
+            alert("This step of Payment Succeeded");
+            },                
+            "theme": {
+            "color": "#2300a3"
+            }
+        };
+
+        console.log('P amount :'+amount);
+        var razorpayObject = new Razorpay(options);
+        console.log(razorpayObject);
+        //console.log("razorpay_payment_id :"+razorpayObject.razorpay_payment_id);
+        razorpayObject.on('payment.failed', function (response){
+        console.log(response);
+        console.log("razorpay_payment_id"+response.razorpay_payment_id);
+
+        alert("This step of Payment Failed");
+        });    
+        razorpayObject.open(); 
+        e.preventDefault();
+    }
+    
+   
+    </script>
 
    
 </body>

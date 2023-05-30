@@ -267,6 +267,30 @@
     function redirect(url){
    window.open(url,'_self');
     }
+
+
+
+function searchProduct() {    
+        $('#searchDivResult').html('');
+        setTimeout(() => {      
+            let search =  $('#search').val();      
+            let searchDiv = '';
+            $.ajax({
+                url: "searchProduct?search="+search,
+                type: "post",  
+                success: function (response) {
+                    console.log(response);                     
+                    response.forEach(element => {
+                        searchDiv +='<div><a target="_new" href="detail?id='+element.prodcutId+'">'+element.prodcutName+'</a></div>'; 
+                    });           
+                    $('#searchDivResult').html(searchDiv);                   
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                console.log(textStatus, errorThrown);
+                }
+            });  
+        }, 1000);
+}
  </script>
 
 <script>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('./partials/head'); -%>
+
+<body>
+    <%- include('./partials/header'); -%>
+    <%- include('./partials/menu'); -%>
+    
+
+
+    <!-- Page Header Start -->
+    <div class="container-fluid bg-secondary mb-5">
+        <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 300px">
+            <h1 class="font-weight-semi-bold text-uppercase mb-3">Payment</h1>
+            <div class="d-inline-flex">
+                <p class="m-0"><a href="">Home</a></p>
+                <p class="m-0 px-2">-</p>
+                <p class="m-0">Payment </p>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header End -->
+
+
+    <!-- Contact Start -->
+    <div class="container-fluid pt-5">
+        Thanks You.
+    </div>
+    <!-- Contact End -->
+
+
+    <%- include('./partials/footer'); -%> 
+</body>
+
+<script>
+    function contactUs(){ 
+        let email = $('#email').val();
+        let name = $('#name').val();
+        let message = $('#message').val();
+        let subject = $('#subject').val();
+        console.log(name,email,message,subject);
+        
+        $.ajax({
+        url: "contactPost?email="+email+"&name="+name+"&subject="+subject+"&message="+message,
+        type: "post",  
+        success: function (response) {
+            console.log(response); 
+            alert(response.message);                  
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+        }); 
+              
+    }
+</script>
+
+</html>

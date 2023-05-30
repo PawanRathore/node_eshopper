@@ -12,5 +12,15 @@ const find_data = async(query)=>{
     return response;
 };
 
-module.exports = {find_data};
+const insert_data = async(query)=>{
+        const res = await new Promise((resolve,reject)=>{
+            console.log(query);
+            connection.query(query,(err,results)=>{
+                if (err) reject(new Error(`${err.code} , Err No : ${err.errno}`));
+                resolve(results.insertId);
+             })
+        })
+}
+
+module.exports = {find_data,insert_data};
 
