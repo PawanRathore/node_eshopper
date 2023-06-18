@@ -34,6 +34,8 @@ const LoginMiddleware = [islogin];
 const PORT = 3001;
 
 
+
+
 app.use(express.static(__dirname + '/public'));
 //app.use(express.static('/uploads')); 
 app.use('/uploads', express.static('uploads'));
@@ -48,6 +50,8 @@ app.use(session({
     saveUninitialized: true,
     cookie: { maxAge: oneDay }
 }))
+
+app.locals.projectName = process.env.PROJECT_NAME;
 
 router.get('/', (req, res) => {
     console.log(`root router`);
@@ -64,7 +68,9 @@ router.get('/', (req, res) => {
             products.push(obj);
         });
         console.log(JSON.stringify(products));
+        //res.locals.projectName = process.env.PROJECT_NAME;
         res.render('index', { 'products': products });
+        
     })
 
 })
@@ -491,6 +497,7 @@ app.post('/addToCard', async (req, res) => {
                         status = 1;
                         resdata = { 'status': status, 'msg': cardMessage };
                         res.json(resdata);
+                        //getCardTotal();
                     }
                 })
             } else {
