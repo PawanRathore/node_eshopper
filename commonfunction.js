@@ -1,3 +1,4 @@
+const { json } = require('body-parser');
 const { promises } = require('nodemailer/lib/xoauth2');
 const { connection } = require('./db/db_connetion');
 const {find_data} = require('./Sqlfunctions');
@@ -144,6 +145,27 @@ const productDetails = async (productId)=>{
   return productsDetailArray;
 } 
 
+const allProductDetails = async () => {
+    let sqlQuery = `select * from products`;
+    let allProductData = await find_data(sqlQuery);    
+    return allProductData;   
+} 
+
+const allProductDetailsSecond = async () => {
+    let allProductDataSecond = {};
+    let sqlQuery = `select * from products`;
+    let products = await find_data(sqlQuery); 
+    
+    for (let key in products) {
+       let obj = { 'id': id, 'name': name, 'price': price, 'discount_price': discount_price, 'category': category, 'product_image': product_image, 'status': staus } = products[key];
+        allProductDataSecond[id] = obj;
+    } 
+
+    console.log(JSON.stringify(allProductDataSecond));
+    return allProductDataSecond;  
+} 
+
+
 const clientDetails = async(clientId,removePassword='1')=>{
     if(clientId) {
         let sql = `select *  from users where id = '${clientId}'`;        
@@ -245,5 +267,5 @@ const checkProductIsAvaliableInCard = async(productId,userId)=>{
     return isProductIsAvaliableInCard;
 }
 
-module.exports = { checkemailExits, getProducts , categories , categoriesMapping , productDetails, checkProductIsAvaliableInCard , clientDetails,States,getClientCardDetails};
+module.exports = { checkemailExits, getProducts , categories , categoriesMapping , productDetails, checkProductIsAvaliableInCard , clientDetails,States,getClientCardDetails, allProductDetails, allProductDetailsSecond};
 

@@ -12,7 +12,7 @@ require('dotenv').config();
 var cookies = require("cookie-parser");
 app.use(cookies());
 
-var bodyParser = require('body-parser'); 
+var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -23,8 +23,8 @@ var { loginMenu } = require('./loginMenuMiddleware');
 //var { isadminlogin } = require('./isadminLoginMiddleware');
 
 const { connection } = require('./db/db_connetion');
-const { checkemailExits, productDetails, checkProductIsAvaliableInCard, clientDetails, States, getClientCardDetails } = require('./commonfunction');
-const { find_data,insert_data } = require('./Sqlfunctions');
+const { checkemailExits, productDetails, checkProductIsAvaliableInCard, clientDetails, States, getClientCardDetails, allProductDetails, allProductDetailsSecond } = require('./commonfunction');
+const { find_data, insert_data } = require('./Sqlfunctions');
 const { transporterMail } = require('./mailConfig');
 const { adminRouter, adminRouterwithLogin } = require('./adminRouter');
 const router = express.Router();
@@ -70,7 +70,7 @@ router.get('/', (req, res) => {
         console.log(JSON.stringify(products));
         //res.locals.projectName = process.env.PROJECT_NAME;
         res.render('index', { 'products': products });
-        
+
     })
 
 })
@@ -159,6 +159,14 @@ router.get('/cart', LoginMiddleware, async (req, res) => {
     console.log(`cart router`);
     let clientId = req.session.clientId;
     //let clientId = 38;
+
+    let allProductData = await allProductDetails();
+    // console.log( JSON.stringify(allProductData));
+    //process.exit();
+
+    let allProductDataSecond = await allProductDetailsSecond();
+
+
     console.log(`clientId : ${clientId}`);
     let sqlQuery = `select * from cart where user_id=${clientId}`;
     let cartData = await find_data(sqlQuery);
@@ -188,13 +196,21 @@ router.get('/cart', LoginMiddleware, async (req, res) => {
 
         if (product_id) {
 
-            //let productsSqlQuery = `select * from products where id='${product_id}'`;
-            //const productsResult = await find_data(productsSqlQuery);                
-            //let {id='',name='',price='',product_image='',discount_price=''} = productsResult[0];
-            //console.log(productsResult[0].discount_price);
+            //let productsResult = await productDetails(product_id);
+            //console.log(productsResult);
 
-            let productsResult = await productDetails(product_id);
-            console.log(productsResult);
+
+
+            // productsResult = allProductData.filter(function (e, i) {
+            //     return e.id == product_id;
+            // });
+            // console.log(productsResult);
+            // productsResult = JSON.parse(JSON.stringify(productsResult[0])); 
+
+
+
+            let productsResult = allProductDataSecond[product_id];
+
             let { id = '', name = '', price = '', product_image = '', discount_price = '' } = productsResult;
             cardItem = { 'productName': name, 'productPrice': price, 'productImage': product_image, 'producId': id, 'discountPrice': discount_price, 'quantity': quantity, 'cardItemId': cardItemId };
             console.log((cardItem));
@@ -229,9 +245,9 @@ router.get('/checkout', LoginMiddleware, async (req, res) => {
 
 })
 
-router.post('/checkPayemtDetails', LoginMiddleware, async (req, res) => {    
+router.post('/checkPayemtDetails', LoginMiddleware, async (req, res) => {
     let status = 0;
-    let msg = '';  
+    let msg = '';
     let { name = '', email = '', mobile = '', address = '', city = '', state = '', pincode = '', grandTotal = '', payment = '' } = req.body;
     if (name != '' || email != '' || mobile != '' || address != '' || city != '' || state != '' || pincode != '' || grandTotal != '' || payment != '') {
         status = 1;
@@ -250,53 +266,53 @@ router.post('/checkPayemtDetails', LoginMiddleware, async (req, res) => {
 
 router.post('/updateDetailsAfterPayment', LoginMiddleware, async (req, res) => {
     let status = 0;
-    let msg = '';  
-    let { name = '', email = '', mobile = '', address = '', city = '', state = '', pincode = '', grandTotal = '', payment = '',paymentId='' } = req.body;
+    let msg = '';
+    let { name = '', email = '', mobile = '', address = '', city = '', state = '', pincode = '', grandTotal = '', payment = '', paymentId = '' } = req.body;
     if (name != '' || email != '' || mobile != '' || address != '' || city != '' || state != '' || pincode != '' || grandTotal != '' || payment != '') {
-        
-            let clientId = req.session.clientId;
-            let updateClientData = `update users set name='${name}',address='${address}',state='${state}',city='${city}',pincode='${pincode}' where id=${clientId}`;
-            connection.query(updateClientData, (err, result) => { 
-            })
 
-            let ClientCardDetails = await getClientCardDetails(clientId);
-            console.log('length : ' + ClientCardDetails.cardItemArray.length);
-            if (ClientCardDetails.cardItemArray.length > 0) {
-                let sqlQuery = `insert into orders(name,user_id,email,mobile,address,state,city,pincode,total,payment_type,paymentId) values ('${name}','${clientId}','${email}','${mobile}','${address}','${state}','${city}','${pincode}','${grandTotal}','${payment}','${paymentId}')`;
-                await connection.query(sqlQuery, (err, result) => {
-                    if (err) { throw err }
-                    else {
-                        console.log(JSON.stringify(result));
-                        let orderId = result.insertId;
+        let clientId = req.session.clientId;
+        let updateClientData = `update users set name='${name}',address='${address}',state='${state}',city='${city}',pincode='${pincode}' where id=${clientId}`;
+        connection.query(updateClientData, (err, result) => {
+        })
 
-                        const cardItems = ClientCardDetails.cardItemArray;
-                        for (item in cardItems) {
-                            let { productName = '', productPrice = '', producId = '', cardItemId = '', quantity = '' } = cardItems[item];
-                            let sqlQuery = `insert into order_items(product_name,product_price,produc_id,card_item_id,quantity,order_id,user_id,paymentId) values ('${productName}','${productPrice}','${producId}','${cardItemId}','${quantity}','${orderId}','${clientId}','${paymentId}')`;
-                            connection.query(sqlQuery, (err, result) => {
-                                if (err) { throw err } else {
-                                    //console.log(JSON.stringify(result));
-                                    let order_items_insertId = result.insertId;
-                                    console.log(` order_items_insertId ${order_items_insertId}`);
-                                }
-                            });
-                        }
-                        let sqlQuery = `delete from cart where user_id=${clientId}`;
+        let ClientCardDetails = await getClientCardDetails(clientId);
+        console.log('length : ' + ClientCardDetails.cardItemArray.length);
+        if (ClientCardDetails.cardItemArray.length > 0) {
+            let sqlQuery = `insert into orders(name,user_id,email,mobile,address,state,city,pincode,total,payment_type,paymentId) values ('${name}','${clientId}','${email}','${mobile}','${address}','${state}','${city}','${pincode}','${grandTotal}','${payment}','${paymentId}')`;
+            await connection.query(sqlQuery, (err, result) => {
+                if (err) { throw err }
+                else {
+                    console.log(JSON.stringify(result));
+                    let orderId = result.insertId;
+
+                    const cardItems = ClientCardDetails.cardItemArray;
+                    for (item in cardItems) {
+                        let { productName = '', productPrice = '', producId = '', cardItemId = '', quantity = '' } = cardItems[item];
+                        let sqlQuery = `insert into order_items(product_name,product_price,produc_id,card_item_id,quantity,order_id,user_id,paymentId) values ('${productName}','${productPrice}','${producId}','${cardItemId}','${quantity}','${orderId}','${clientId}','${paymentId}')`;
                         connection.query(sqlQuery, (err, result) => {
-                        })
+                            if (err) { throw err } else {
+                                //console.log(JSON.stringify(result));
+                                let order_items_insertId = result.insertId;
+                                console.log(` order_items_insertId ${order_items_insertId}`);
+                            }
+                        });
                     }
-                })
-                status = 1;
-                msg = 'Order place Successfully';
-                resobj = { 'status': status, 'msg': msg };
-                res.json(resobj);
-            } else {
-                status = 1;
-                msg = 'Card Empty';
-                resobj = { 'status': status, 'msg': msg };
-                res.json(resobj);
-            }
-        
+                    let sqlQuery = `delete from cart where user_id=${clientId}`;
+                    connection.query(sqlQuery, (err, result) => {
+                    })
+                }
+            })
+            status = 1;
+            msg = 'Order place Successfully';
+            resobj = { 'status': status, 'msg': msg };
+            res.json(resobj);
+        } else {
+            status = 1;
+            msg = 'Card Empty';
+            resobj = { 'status': status, 'msg': msg };
+            res.json(resobj);
+        }
+
     }
     else {
         status = 0;
@@ -331,41 +347,41 @@ app.post('/contactPost', async (req, res) => {
         } else {
             let query = `INSERT INTO contact_us (name,email,subject,message) values ( '${name}','${email}','${subject}','${message}')`;
             result = insert_data(query);
-            if(result) {
-            console.log(JSON.stringify(result));
-                    let insertId = result.insertId;
+            if (result) {
+                console.log(JSON.stringify(result));
+                let insertId = result.insertId;
 
-                    const response = new Promise((resolve, reject) => {
-                        let html = `<table><tr><td>Name : </td><td>${name}</td></tr> <tr><td>Email : </td><td>${email}</td></tr> <tr><td>Subject : </td><td>${subject}</td></tr> <tr><td>Message : </td><td>${message}</td></tr></table>`;
-                        let mailOptions = {
-                            from: 'rathorepawan13@gmail.com',
-                            to: 'rathorepawan13@gmail.com',
-                            subject: 'Sending Email using Node.js',
-                            text: 'Contact Us Request From E-shooper!',
-                            html: html,
-                            // An array of attachments
-                            // attachments: [
-                            // {
-                            // filename: 'text notes.txt',
-                            // path: 'notes.txt'
-                            // },
-                            // ]
-                        };
+                const response = new Promise((resolve, reject) => {
+                    let html = `<table><tr><td>Name : </td><td>${name}</td></tr> <tr><td>Email : </td><td>${email}</td></tr> <tr><td>Subject : </td><td>${subject}</td></tr> <tr><td>Message : </td><td>${message}</td></tr></table>`;
+                    let mailOptions = {
+                        from: 'rathorepawan13@gmail.com',
+                        to: 'rathorepawan13@gmail.com',
+                        subject: 'Sending Email using Node.js',
+                        text: 'Contact Us Request From E-shooper!',
+                        html: html,
+                        // An array of attachments
+                        // attachments: [
+                        // {
+                        // filename: 'text notes.txt',
+                        // path: 'notes.txt'
+                        // },
+                        // ]
+                    };
 
-                        transporterMail.sendMail(mailOptions, function (error, info) {
-                            if (error) {
-                                console.log('sendMail' + error);
-                                reject(error);
-                            } else {
-                                let mailSendId = info.response;
-                                console.log('Email sent: ' + mailSendId);
-                                resolve(mailSendId);
-                            }
-                        });
-                    })
-                    let resultArray = { 'status': 1, 'message': 'Thank you for reaching us we wil contact you soon' };
-                    res.json(resultArray);
-            } 
+                    transporterMail.sendMail(mailOptions, function (error, info) {
+                        if (error) {
+                            console.log('sendMail' + error);
+                            reject(error);
+                        } else {
+                            let mailSendId = info.response;
+                            console.log('Email sent: ' + mailSendId);
+                            resolve(mailSendId);
+                        }
+                    });
+                })
+                let resultArray = { 'status': 1, 'message': 'Thank you for reaching us we wil contact you soon' };
+                res.json(resultArray);
+            }
         }
     } else {
         let resultArray = { 'status': 0, 'message': 'Please Enter all the details' };
@@ -561,12 +577,12 @@ app.post('/getCardTotal', LoginMiddleware, async (req, res) => {
             }
         }
 
-        shippingCharge = (cardTotal>1000) ?  shippingCharge : 0;
+        shippingCharge = (cardTotal > 1000) ? shippingCharge : 0;
 
         grandTotal = parseInt(cardTotal) + parseInt(shippingCharge);
 
         console.log(`cardTotal: ${cardTotal}`);
-        resdata = { 'status': status, 'msg': cardMessage, 'cardTotal': cardTotal, 'shippingCharge': shippingCharge, 'grandTotal': grandTotal,'itemCount':itemCounter };
+        resdata = { 'status': status, 'msg': cardMessage, 'cardTotal': cardTotal, 'shippingCharge': shippingCharge, 'grandTotal': grandTotal, 'itemCount': itemCounter };
         res.json(resdata);
     } else {
         let pageUrl = req.originalUrl;
@@ -708,110 +724,110 @@ app.get('/logout', (req, res) => {
     res.redirect('/login#loginTab');
 });
 
-app.post('/searchProduct', async(req,res)=>{
+app.post('/searchProduct', async (req, res) => {
     console.log(req.query.search);
-    let { search='' } =  req.query;
-    if(search){
-        let query = `select * from products where name like '%${search}%'`; 
-        let Data =  await find_data(query);
-        console.log(  JSON.stringify(Data) );
-        
+    let { search = '' } = req.query;
+    if (search) {
+        let query = `select * from products where name like '%${search}%'`;
+        let Data = await find_data(query);
+        console.log(JSON.stringify(Data));
+
         let searchProduct = [];
-        for(let item in Data) {        
-            let {id='',name=''} = Data[item];
-            let obj = {'prodcutId':id,'prodcutName':name};
+        for (let item in Data) {
+            let { id = '', name = '' } = Data[item];
+            let obj = { 'prodcutId': id, 'prodcutName': name };
             searchProduct.push(obj);
         }
         res.json(searchProduct);
     }
 })
 
-app.get('/razorpay',async(req, res)=>{
+app.get('/razorpay', async (req, res) => {
     var instance = new Razorpay({
         key_id: 'rzp_test_uR05WckzzLFDuY',
         key_secret: 'TPiI3JCVUnoc2jaiCEXMshpY',
-      });
+    });
 
-      var options = {
+    var options = {
         amount: 200,  // amount in the smallest currency unit
         currency: "INR",
         receipt: "test_1"
-      };
+    };
 
-      instance.orders.create(options, function(err, order) {
+    instance.orders.create(options, function (err, order) {
         console.log(order);
 
-//         {
-//   id: 'order_LufAaCO9TO7E85',
-//   entity: 'order',
-//   amount: 500,
-//   amount_paid: 0,
-//   amount_due: 500,
-//   currency: 'INR',
-//   receipt: 'test_1',
-//   offer_id: null,
-//   status: 'created',
-//   attempts: 0,
-//   notes: [],
-//   created_at: 1685185250
-// }
-        if(err){
+        //         {
+        //   id: 'order_LufAaCO9TO7E85',
+        //   entity: 'order',
+        //   amount: 500,
+        //   amount_paid: 0,
+        //   amount_due: 500,
+        //   currency: 'INR',
+        //   receipt: 'test_1',
+        //   offer_id: null,
+        //   status: 'created',
+        //   attempts: 0,
+        //   notes: [],
+        //   created_at: 1685185250
+        // }
+        if (err) {
             console.log(err)
         }
-      }); 
+    });
 })
 
-app.post('/razorpay/create/orderId',async(req, res)=>{
+app.post('/razorpay/create/orderId', async (req, res) => {
     var instance = new Razorpay({
         key_id: 'rzp_test_uR05WckzzLFDuY',
         key_secret: 'TPiI3JCVUnoc2jaiCEXMshpY',
-      });
+    });
 
-      
-     console.log( "amount::"+ JSON.stringify(req.body) );
-     let {amount=0} = req.body;
-     console.log( "amount : "+ amount); 
 
-     amount =  amount*100;
+    console.log("amount::" + JSON.stringify(req.body));
+    let { amount = 0 } = req.body;
+    console.log("amount : " + amount);
 
-      var options = {
+    amount = amount * 100;
+
+    var options = {
         amount: amount,  // amount in the smallest currency unit
         currency: "INR",
         receipt: "test_1"
-      };
+    };
 
-      instance.orders.create(options, function(err, order) {
+    instance.orders.create(options, function (err, order) {
         console.log(order);
-        res.send({'orderId':order.id,'amount':amount});
-        if(err){
+        res.send({ 'orderId': order.id, 'amount': amount });
+        if (err) {
             console.log(err)
         }
-      }); 
+    });
 })
 
-app.post('/paymentStatus',async(req,res)=>{
-     res.render('paymentStatus');
-     //res.render('dashboard');
+app.post('/paymentStatus', async (req, res) => {
+    res.render('paymentStatus');
+    //res.render('dashboard');
 })
 
-app.get('/paymentStatus',async(req,res)=>{
+app.get('/paymentStatus', async (req, res) => {
     res.render('paymentStatus');
 })
 
 
-app.get('/webhook',async(req,res)=>{
-        console.log('webhook');
-        let RAZORPAY_WEBHOOK_SECRET = 123456;
-        const requestedBody = JSON.stringify(req.body)        
-        const receivedSignature = req.headers['x-razorpay-signature'];
-        console.log('receivedSignature'+receivedSignature);
-        const expectedSignature = crypto.createHmac('sha256', RAZORPAY_WEBHOOK_SECRET).update(requestedBody).digest('hex')
-        if (receivedSignature === expectedSignature) { 
-            console('success in webhook');
+app.get('/webhook', async (req, res) => {
+    console.log('webhook');
+    let RAZORPAY_WEBHOOK_SECRET = 123456;
+    const requestedBody = JSON.stringify(req.body)
+    const receivedSignature = req.headers['x-razorpay-signature'];
+    console.log('receivedSignature' + receivedSignature);
+    const expectedSignature = crypto.createHmac('sha256', RAZORPAY_WEBHOOK_SECRET).update(requestedBody).digest('hex')
+    if (receivedSignature === expectedSignature) {
+        console('success in webhook');
         // Store in your DB
-        } else {
+    } else {
         res.status(501).send('received but unverified resp')
-        }
+    }
     //res.send('webhook');
 })
 
