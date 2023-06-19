@@ -27,6 +27,8 @@ const { checkemailExits, productDetails, checkProductIsAvaliableInCard, clientDe
 const { find_data, insert_data } = require('./Sqlfunctions');
 const { transporterMail } = require('./mailConfig');
 const { adminRouter, adminRouterwithLogin } = require('./adminRouter');
+const {jwtRouter} = require('./jwt');
+
 const router = express.Router();
 router.use(loginMenu);
 const LoginMiddleware = [islogin];
@@ -883,9 +885,11 @@ app.get('/webhook', async (req, res) => {
 //     res.render('add_product');
 // })  
 
+app.use(jwtRouter); 
 app.use(adminRouterwithLogin);
 app.use(adminRouter);
 app.use(router);
+
 
 app.listen(PORT, (error) => {
     if (!error)
