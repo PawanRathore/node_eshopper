@@ -21,11 +21,24 @@ pup.get('/puppeteer', async (req, res) => {
     //identify element
     //page.waitForSelector('[id="lblNewsTitle"]')
     //const f = await page.$('[id="lblNewsTitle"]')
-    const element = await page.$("h3");
-    const text = await (await element.getProperty("innerText")).jsonValue();
+    //const element = await page.$("h3");
+    //const text = await (await element.getProperty("innerText")).jsonValue();
     //obtain text
    // const text = await (await f.getProperty('textContent')).jsonValue()
-   console.log(text)
+   //let element = await page.$("#lblNewsTitle")
+//    let element = await page.$('[id="lblNewsTitle"]')
+//    const text = await (await element.getProperty("innerText")).jsonValue();
+//    console.log(element)
+
+page.eval(() => {
+
+    let element = document.querySelector('#lblNewsTitle')
+    console.log(element.innerText);
+    return element.innerText
+
+}).then(text => {
+    console.log(text)
+})
 
 
 

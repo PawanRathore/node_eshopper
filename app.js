@@ -25,6 +25,7 @@ var { loginMenu } = require('./loginMenuMiddleware');
 const { connection } = require('./db/db_connetion');
 const { checkemailExits, productDetails, checkProductIsAvaliableInCard, clientDetails, States, getClientCardDetails, allProductDetails, allProductDetailsSecond } = require('./commonfunction');
 const {pup} = require('./puppeteer');
+const {testRouter} = require('./test');
 const { find_data, insert_data } = require('./Sqlfunctions');
 const { transporterMail } = require('./mailConfig');
 const { adminRouter, adminRouterwithLogin } = require('./adminRouter');
@@ -891,6 +892,7 @@ app.use(adminRouterwithLogin);
 app.use(adminRouter);
 app.use(router);
 app.use(pup);
+app.use(testRouter);
 
 
 app.listen(PORT, (error) => {
