@@ -24,12 +24,12 @@ var { loginMenu } = require('./loginMenuMiddleware');
 
 const { connection } = require('./db/db_connetion');
 const { checkemailExits, productDetails, checkProductIsAvaliableInCard, clientDetails, States, getClientCardDetails, allProductDetails, allProductDetailsSecond } = require('./commonfunction');
-const {pup} = require('./puppeteer');
-const {testRouter} = require('./test');
+const { pup } = require('./puppeteer');
+const { testRouter } = require('./test');
 const { find_data, insert_data } = require('./Sqlfunctions');
 const { transporterMail } = require('./mailConfig');
 const { adminRouter, adminRouterwithLogin } = require('./adminRouter');
-const {jwtRouter} = require('./jwt');
+const { jwtRouter } = require('./jwt');
 
 const router = express.Router();
 router.use(loginMenu);
@@ -718,8 +718,11 @@ app.get('/dashboard', LoginMiddleware, async (req, res) => {
             })
         }
         res.clearCookie("pageRedirect");
+    } else {
+        const allProduct = await allProductDetails();
+        console.log('allProductDetails' + JSON.stringify(allProduct));
+        res.render('dashboard', { 'products': allProduct });
     }
-    res.render('dashboard');
 })
 
 app.get('/logout', (req, res) => {
@@ -744,6 +747,42 @@ app.post('/searchProduct', async (req, res) => {
         }
         res.json(searchProduct);
     }
+})
+
+app.post('/rangfilter', async (req, res) => {
+    let { priceFilter = '', colorFilter = '', sizeFilter = '' } = req.query;
+
+    console.log(`pricefilter ${priceFilter}`);
+    console.log(`colorfilter ${colorFilter}`);
+    console.log(`sizefilter ${sizeFilter}`);
+
+    if (priceFilter == 'all' && colorFilter == 'all' && sizeFilter == 'all') {
+    } else {
+
+        let whereCondition = "where staus = 1";
+
+        if (priceFilter != 'all') {
+            let priceFilterArray = priceFilter.split('-');
+            whereCondition += ` and price<=${priceFilterArray[1]}`; 
+        }
+        if (colorFilter != 'all') {
+            whereCondition += ` and color='${colorFilter}'`;
+        }
+        if (sizeFilter != 'all') {
+            whereCondition += ` and size='${sizeFilter}'`;
+        }
+
+        console.log(whereCondition);
+        let fitlerData = [];
+        let sqlQuery = `select * from products ${whereCondition}`;
+        fitlerData = await find_data(sqlQuery);
+
+        console.log(JSON.stringify(fitlerData));
+        res.render('filterItem', { 'products': fitlerData });
+        //return allProductData; 
+    }
+
+
 })
 
 app.get('/razorpay', async (req, res) => {
@@ -887,7 +926,7 @@ app.get('/webhook', async (req, res) => {
 //     res.render('add_product');
 // })  
 
-app.use(jwtRouter); 
+app.use(jwtRouter);
 app.use(adminRouterwithLogin);
 app.use(adminRouter);
 app.use(router);

@@ -290,6 +290,28 @@ function searchProduct() {
             });  
         }, 1000);
 }
+
+function rangfilter() {
+    // var pricefFilter = $("input:radio[name=pricefilter]:checked").val();
+    // var colorFilter = $("input:radio[name=colorfilter]:checked").val();
+    // var sizeFilter = $("input:radio[name=sizefilter]:checked").val();
+
+    let priceFilter = document.querySelector('input[name = pricefilter]:checked').value;
+    let colorFilter =  document.querySelector('input[name = colorfilter]:checked').value;
+    let sizeFilter =  document.querySelector('input[name = sizefilter]:checked').value;
+           
+        $.ajax({
+        url: "rangfilter?priceFilter="+priceFilter+"&colorFilter="+colorFilter+"&sizeFilter="+sizeFilter,
+        type: "post",  
+        success: function (response) {
+            console.log(response);    
+            $('#items').html(response);                                    
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+           console.log(textStatus, errorThrown);
+        }
+        });
+    }
  </script>
 
 <script>
